@@ -30,53 +30,53 @@ public class LayoutComponent implements Layoutable {
         setAssignedY(yVal);
     }
 
-    public void setSize(int width, int height) {
-        if (width > widthHeightRange.getMaxWidth()
-                || width < widthHeightRange.getMinWidth()
-                || height > widthHeightRange.getMaxHeight()
-                || height < widthHeightRange.getMinHeight()) {
-            log.error("invalid setSize: (" + width + "," + height + ") on " + widthHeightRange);
-        }
-        setAssignedWidth(width);
-        setAssignedHeight(height);
-    }
+	public void setSize (int width, int height) {
+		if (width > widthHeightRange.getMaxWidth()
+				|| width < widthHeightRange.getMinWidth()
+				|| height > widthHeightRange.getMaxHeight()
+				|| height < widthHeightRange.getMinHeight()) {
+			log.error("invalid setSize: (" + width + "," + height + ") on " + widthHeightRange);
+		}
+		setAssignedWidth(width);
+		setAssignedHeight(height);
+	}
 
-    @Override
-    public String toString() {
-        return "['"
-                + label
-                + "'("
-                + assignedX
-                + ","
-                + assignedY
-                + ")."
-                + "("
-                + assignedWidth
-                + ","
-                + assignedHeight
-                + ") < "
-                + widthHeightRange
-                + " >]";
-    }
+	@Override
+	public String toString () {
+		return "['"
+				+ label
+				+ "'("
+				+ assignedX
+				+ ","
+				+ assignedY
+				+ ")."
+				+ "("
+				+ assignedWidth
+				+ ","
+				+ assignedHeight
+				+ ") < "
+				+ widthHeightRange
+				+ " >]";
+	}
 
-    /**
-     * For a component, this method returns the associated WidthHeightRange object.
-     *
-     * @return The associated WidthHeightRange object.
-     */
-    @Override
-    public Vector<WidthHeightRange> getRanges() {
-        Vector<WidthHeightRange> vec = new Vector<>();
-        vec.add(widthHeightRange);
-        return vec;
-    }
+	/**
+	 * For a component, this method returns the associated WidthHeightRange object.
+	 *
+	 * @return The associated WidthHeightRange object.
+	 */
+	@Override
+	public Vector<WidthHeightRange> getRanges () {
+		Vector<WidthHeightRange> vec = new Vector<>();
+		vec.add(widthHeightRange);
+		return vec;
+	}
 
-    @Override
-    public void layout(int x, int y, int w, int h, WidthHeightRange whr) {
-        // This is the main method that does the computation of layout
-        setAssignedX(x);
-        setAssignedY(y);
-        setAssignedWidth(w);
-        setAssignedHeight(h);
-    }
+	@Override
+	public void layout (int x, int y, int w, int h, WidthHeightRange whr) {
+		// This is the main method that does the computation of layout
+		setAssignedX(x);
+		setAssignedY(y);
+		setAssignedWidth(w);
+		setAssignedHeight(h);
+	}
 }
