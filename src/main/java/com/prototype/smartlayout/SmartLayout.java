@@ -105,31 +105,31 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		LayoutComponent compA =
 				createComponent(
 						"A",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100, 1));
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
 		LayoutComponent compB =
 				createComponent(
 						"B",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100, 1));
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
 		LayoutComponent compC =
 				createComponent(
 						"C",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100, 1));
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
 		LayoutComponent compD =
 				createComponent(
 						"D",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 400, 200, 400, 1));
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 400, 200, 400));
 		LayoutComponent compE =
 				createComponent(
 						"E",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150, 1));
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
 		LayoutComponent compF =
 				createComponent(
 						"F",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150, 1));
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
 		LayoutComponent compG =
 				createComponent(
 						"G",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 300, 200, 300, 1));
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 300, 200, 300));
 
 		LayoutContainer contY = new LayoutContainer();
 		contY.addComponent(compE);
