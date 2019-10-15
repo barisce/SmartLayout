@@ -6,9 +6,13 @@ import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.Layoutable;
 import com.prototype.smartlayout.model.WidthHeightRange;
 import com.prototype.smartlayout.model.WidthHeightRangeEnum;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
@@ -17,8 +21,11 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.util.Vector;
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 import lombok.extern.log4j.Log4j;
 import org.apache.log4j.LogManager;
@@ -30,6 +37,8 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	private static final long serialVersionUID = 6944709955451188697L;
 	private final Vector<LayoutComponent> components;
 	private final JPanel panel;
+	private JTextField txtnum1;
+	private JTextField txtnum2;
 	private Layoutable root;
 	private BufferedImage buffer;
 	private Graphics bufferGraphics;
@@ -43,16 +52,47 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		addComponentListener(this);
 
+		JPanel outerPanel = new JPanel(new BorderLayout());
+		JPanel topPanel = new JPanel(new FlowLayout());
 		panel = new JPanel(new FlowLayout());
-		panel.setSize(100, 100);
+		panel.setSize(800, 600);
 		panel.addMouseListener(new CanvasMouseListener());
 		panel.addMouseWheelListener(new CanvasMouseListener());
 		panel.addKeyListener(new KeyInputHandler());
 
+		JLabel lbl1 = new JLabel("X: ");
+		topPanel.add(lbl1);
+		txtnum1 = new JTextField();
+		txtnum1.setText("800");
+		txtnum1.setPreferredSize(new Dimension(60, 25));
+		topPanel.add(txtnum1);
+
+		JLabel lbl2 = new JLabel("Y: ");
+		topPanel.add(lbl2);
+		txtnum2 = new JTextField();
+		txtnum2.setText("600");
+		txtnum2.setPreferredSize(new Dimension(60, 25));
+		topPanel.add(txtnum2);
+
+		JButton button = new JButton("Resize");
+		button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed (ActionEvent e) {
+				root.setAssignedWidth(Integer.parseInt(txtnum1.getText()));
+				root.setAssignedHeight(Integer.parseInt(txtnum2.getText()));
+				finalLayoutCases = root.getRanges();
+				root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getFeasibleLayout(finalLayoutCases));
+				drawLayout();
+			}
+		});
+		topPanel.add(button);
+		outerPanel.add(panel, BorderLayout.CENTER);
+		outerPanel.add(topPanel, BorderLayout.PAGE_START);
+
 		buffer = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
 		bufferGraphics = buffer.createGraphics();
 
-		setContentPane(panel);
+		setContentPane(outerPanel);
 		setVisible(true);
 	}
 
@@ -60,11 +100,11 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		PropertyConfigurator.configure(
 				SmartLayout.class.getProtectionDomain().getCodeSource().getLocation().getPath()
 						+ "log4j.properties");
-		//        PropertyConfigurator.configure("log4j.properties");
 
 		SmartLayout app = new SmartLayout();
 		app.run();
-		app.setSize(app.root.getAssignedWidth() + 50, app.root.getAssignedHeight() + 50);
+//		app.setSize(app.root.getAssignedWidth() + 50, app.root.getAssignedHeight() + 50);
+		app.setSize(1300, 800);
 	}
 
 	/**
@@ -81,8 +121,8 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	}
 
 	/**
-	 * Creates a demo layout main.java.com.prototype.smartlayout.model and runs the layout algorithm
-	 * on the main.java.com.prototype.smartlayout.model.
+	 * Creates a demo layout LayoutComponent and runs the layout algorithm
+	 * on the LayoutContainer
 	 */
 	private void run () {
 		log.debug("Starting test...");
@@ -175,7 +215,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			int red = 100 + (int) (Math.random() * 100);
 			int gre = 100 + (int) (Math.random() * 100);
 			int blu = 100 + (int) (Math.random() * 100);
-			//			System.out.println(c + " " + red + " " + gre + " " + blu);
+			// System.out.println(c + " " + red + " " + gre + " " + blu);
 
 			bufferGraphics.setColor(new Color(red, gre, blu));
 			bufferGraphics.fillRect(x, y, w, h);
@@ -200,18 +240,46 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		if (root == null) {
 			return;
 		}
-//		setResizeOnRoot();
+		setResizeOnRoot();
 		finalLayoutCases = root.getRanges();
-		this.root.layout(0, 0, this.getWidth(), this.getHeight(), finalLayoutCases.get(0));
-		log.debug("Width: " + (panel.getWidth() - 50) + " Height: " + (panel.getHeight() - 50));
+		this.root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getFeasibleLayout(finalLayoutCases));
+		log.debug("Root Width: " + (root.getAssignedWidth() - 50) + " Root Height: " + (root.getAssignedHeight() - 50) + " Width: " + (panel.getWidth() - 50) + " Height: " + (panel.getHeight() - 50));
 
 		panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
 		drawLayout();
 	}
 
+	private WidthHeightRange getFeasibleLayout (Vector<WidthHeightRange> layouts) {
+		if (layouts.isEmpty()) {
+			return null;
+		}
+
+		int minWidthDiff = Integer.MAX_VALUE;
+		int minHeightDiff = Integer.MAX_VALUE;
+		WidthHeightRange bestFit = null;
+
+		for (WidthHeightRange range : layouts) {
+			int widthDiff = Math.min(root.getAssignedWidth() - range.getMinWidth(), Math.abs(root.getAssignedWidth() - range.getMaxWidth()));
+			int heightDiff = Math.min(root.getAssignedHeight() - range.getMinHeight(), Math.abs(root.getAssignedHeight() - range.getMaxHeight()));
+			if (widthDiff >= 0 && heightDiff >= 0) {
+				// Feasible
+				if (widthDiff < minWidthDiff && heightDiff < minHeightDiff) {
+					minWidthDiff = widthDiff;
+					minHeightDiff = heightDiff;
+					bestFit = range;
+				}
+			}
+		}
+		if (bestFit != null) {
+			return bestFit;
+		} else {
+			return layouts.get(0);
+		}
+	}
+
 	private void setResizeOnRoot () {
-		root.setAssignedWidth(root.getAssignedWidth() - 50);
-		root.setAssignedHeight(root.getAssignedHeight() - 50);
+		root.setAssignedWidth(panel.getWidth() - 50);
+		root.setAssignedHeight(panel.getHeight() - 50);
 	}
 
 	@Override
@@ -228,6 +296,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 
 	public class CanvasMouseListener implements MouseListener, MouseWheelListener {
 		private Logger logger = LogManager.getLogger(CanvasMouseListener.class);
+		private int counter = 0;
 
 		@Override
 		public void mouseClicked (MouseEvent e) {
@@ -252,16 +321,29 @@ public class SmartLayout extends JFrame implements ComponentListener {
 
 		@Override
 		public void mouseWheelMoved (MouseWheelEvent e) {
+			incrementCount();
 			if (e.getWheelRotation() > 0) {
 				// DOWN
-				root.setAssignedWidth(root.getAssignedWidth() - 50);
-				root.setAssignedHeight(root.getAssignedHeight() - 50);
+				root.setAssignedWidth(Math.max(0, root.getAssignedWidth() - 50));
+				root.setAssignedHeight(Math.max(0, root.getAssignedHeight() - 50));
+				panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
+				finalLayoutCases = root.getRanges();
+				root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCases.get(counter));
 			} else {
 				// UP
 				root.setAssignedWidth(root.getAssignedWidth() + 50);
 				root.setAssignedHeight(root.getAssignedHeight() + 50);
+				panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
+				finalLayoutCases = root.getRanges();
+				root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCases.get(counter));
 			}
+			logger.debug("Width - " + root.getAssignedWidth() + " Y - " + root.getAssignedHeight());
+			log.debug(finalLayoutCases);
 			repaint();
+		}
+
+		private void incrementCount () {
+			counter = (counter + 1) % finalLayoutCases.size();
 		}
 	}
 }
