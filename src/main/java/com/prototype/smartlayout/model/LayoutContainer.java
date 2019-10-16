@@ -216,10 +216,11 @@ public class LayoutContainer implements Layoutable {
 			int cumW = 0;
 
 			for (int i = 0; i < subRanges.size(); i++) {
-				children.get(i).layout(cumW, y, minWidthValues[i], h, subRanges.get(i));
-				cumW += minWidthValues[i];
+				int value = getOptimalWidthValue(minWidthValues[i], maxWidthValues[i], whr);
+				children.get(i).layout(cumW, y, value, h, subRanges.get(i));
+				cumW += value;
 			}
-		} // Second, the HORIZONTAL orientation strategy
+		} // Second, the VERTICAL orientation strategy
 		else if (whr.getOrientationStrategy() == WidthHeightRangeEnum.VERTICAL) {
 			Vector<WidthHeightRange> subRanges = whr.getSubRanges();
 			int[] minHeightValues = new int[subRanges.size()];
@@ -232,13 +233,33 @@ public class LayoutContainer implements Layoutable {
 			// TODO Process min and max values to compute optimal values
 
 			int cumH = 0;
-
+			// TODO This needs to be done in reverse?
 			for (int i = 0; i < subRanges.size(); i++) {
-				children.get(i).layout(x, cumH, w, minHeightValues[i], subRanges.get(i));
-				cumH += minHeightValues[i];
+				int value = getOptimalHeightValue(minHeightValues[i], maxHeightValues[i], whr);
+				children.get(i).layout(x, cumH, w, value, subRanges.get(i));
+				cumH += value;
 			}
 		} else {
 			log.debug("Shouldn't be here");
+		}
+	}
+
+	private int getOptimalWidthValue(int minWidthValue, int maxWidthValue, WidthHeightRange whr) {
+		if (minWidthValue >= whr.getMinWidth() && whr.getMaxWidth() <= maxWidthValue) {
+			return maxWidthValue;
+		} else if (whr.getMaxWidth() < maxWidthValue) {
+			return whr.getMaxWidth();
+		} else {
+			return maxWidthValue;
+		}
+	}
+	private int getOptimalHeightValue(int minHeightValue, int maxHeightValue, WidthHeightRange whr) {
+		if (minHeightValue >= whr.getMinHeight() && whr.getMaxHeight() <= maxHeightValue) {
+			return maxHeightValue;
+		} else if (whr.getMaxHeight() < maxHeightValue) {
+			return whr.getMaxHeight();
+		} else {
+			return maxHeightValue;
 		}
 	}
 

@@ -10,6 +10,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -221,7 +222,9 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			bufferGraphics.fillRect(x, y, w, h);
 
 			bufferGraphics.setColor(Color.black);
-			bufferGraphics.drawString(c.getLabel(), x + w / 2, y + h / 2);
+			bufferGraphics.setFont(new Font("Arial", Font.PLAIN, ((w / 2) + (h / 2)) / 3));
+			bufferGraphics.drawString(c.getLabel(), x + w / 2 - (h / 2) / 6, y + h / 2 + (w / 2) / 6);
+			bufferGraphics.setFont(new Font("Arial", Font.PLAIN, 14));
 			bufferGraphics.drawString(x + " , " + y, x + 5, y + 15);
 			bufferGraphics.drawString("" + w, x + w / 2, y + h - 10);
 			bufferGraphics.drawString("" + h, x + w - 30, y + h / 2);
