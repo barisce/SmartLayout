@@ -67,7 +67,7 @@ public class LayoutContainer implements Layoutable {
 	@Override
 	public Vector<WidthHeightRange> getRanges () {
 		// vec is what we will return at the end.
-
+        // Neden containerların widthheigthrange objesi yok. Subrangesa iki kere giriyor.
 		// movingRanges and tempRanges are used temporarily for creating all possible
 		// layouts.
 
@@ -179,7 +179,7 @@ public class LayoutContainer implements Layoutable {
 							newRange.addSubRanges(whr.getSubRanges());
 							newRange.addSubRange(whrNew);
 							tempRanges.add(newRange);
-						}
+						} // else koşulunda max - min lik bir filler yapılabilir
 					}
 				}
 
@@ -200,7 +200,7 @@ public class LayoutContainer implements Layoutable {
 		setAssignedY(y);
 		setAssignedWidth(w);
 		setAssignedHeight(h);
-
+		// TODO: width ve height ı kendi içinde düşün ve kendi içinde resize et.
 		// First, the HORIZONTAL orientation strategy
 		if (whr.getOrientationStrategy() == WidthHeightRangeEnum.HORIZONTAL) {
 			Vector<WidthHeightRange> subRanges = whr.getSubRanges();
@@ -233,7 +233,6 @@ public class LayoutContainer implements Layoutable {
 			// TODO Process min and max values to compute optimal values
 
 			int cumH = 0;
-			// TODO This needs to be done in reverse?
 			for (int i = 0; i < subRanges.size(); i++) {
 				int value = getOptimalHeightValue(minHeightValues[i], maxHeightValues[i], whr);
 				children.get(i).layout(x, cumH, w, value, subRanges.get(i));
@@ -244,23 +243,25 @@ public class LayoutContainer implements Layoutable {
 		}
 	}
 
-	private int getOptimalWidthValue(int minWidthValue, int maxWidthValue, WidthHeightRange whr) {
-		if (minWidthValue >= whr.getMinWidth() && whr.getMaxWidth() <= maxWidthValue) {
-			return maxWidthValue;
-		} else if (whr.getMaxWidth() < maxWidthValue) {
-			return whr.getMaxWidth();
-		} else {
-			return maxWidthValue;
-		}
+	private int getOptimalWidthValue(int minWidthValue, int maxWidthValue, WidthHeightRange whr /* whr.Strategy */) {
+		return minWidthValue;
+//	    if (minWidthValue >= whr.getMinWidth() && whr.getMaxWidth() <= maxWidthValue) {
+//			return maxWidthValue;
+//		} else if (whr.getMaxWidth() < maxWidthValue) {
+//			return whr.getMaxWidth();
+//		} else {
+//			return maxWidthValue;
+//		}
 	}
 	private int getOptimalHeightValue(int minHeightValue, int maxHeightValue, WidthHeightRange whr) {
-		if (minHeightValue >= whr.getMinHeight() && whr.getMaxHeight() <= maxHeightValue) {
-			return maxHeightValue;
-		} else if (whr.getMaxHeight() < maxHeightValue) {
-			return whr.getMaxHeight();
-		} else {
-			return maxHeightValue;
-		}
+		return minHeightValue;
+//	    if (minHeightValue >= whr.getMinHeight() && whr.getMaxHeight() <= maxHeightValue) {
+//			return maxHeightValue;
+//		} else if (whr.getMaxHeight() < maxHeightValue) {
+//			return whr.getMaxHeight();
+//		} else {
+//			return maxHeightValue;
+//		}
 	}
 
 	public void addComponent (Layoutable comp) {
