@@ -67,7 +67,7 @@ public class LayoutContainer implements Layoutable {
 	@Override
 	public Vector<WidthHeightRange> getRanges () {
 		// vec is what we will return at the end.
-        // Neden containerların widthheigthrange objesi yok. Subrangesa iki kere giriyor.
+		// TODO: Neden containerların widthheigthrange objesi yok. Subrangesa iki kere giriyor.
 		// movingRanges and tempRanges are used temporarily for creating all possible
 		// layouts.
 
@@ -194,7 +194,8 @@ public class LayoutContainer implements Layoutable {
 	}
 
 	@Override
-	public void layout (int x, int y, int w, int h, WidthHeightRange whr) {
+	public boolean layout (int x, int y, int w, int h, WidthHeightRange whr) {
+		boolean feasible = true;
 		// This is the main method that does the computation of layout
 		setAssignedX(x);
 		setAssignedY(y);
@@ -204,64 +205,71 @@ public class LayoutContainer implements Layoutable {
 		// First, the HORIZONTAL orientation strategy
 		if (whr.getOrientationStrategy() == WidthHeightRangeEnum.HORIZONTAL) {
 			Vector<WidthHeightRange> subRanges = whr.getSubRanges();
+			int totalWidthOfChildren = 0;
 			int[] minWidthValues = new int[subRanges.size()];
 			int[] maxWidthValues = new int[subRanges.size()];
 			for (int i = 0; i < subRanges.size(); i++) {
 				minWidthValues[i] = subRanges.get(i).getMinWidth();
 				maxWidthValues[i] = subRanges.get(i).getMaxWidth();
+				totalWidthOfChildren += subRanges.get(i).getMaxWidth();
 			}
 
-			// TODO Process min and max values to compute optimal values
-
+			// find the width ratio according to max values
+			float wr = totalWidthOfChildren / (float) w;
 			int cumW = 0;
-
 			for (int i = 0; i < subRanges.size(); i++) {
-				int value = getOptimalWidthValue(minWidthValues[i], maxWidthValues[i], whr);
-				children.get(i).layout(cumW, y, value, h, subRanges.get(i));
-				cumW += value;
+				// Resize the component to fit the window
+				int value = (int) Math.ceil(maxWidthValues[i] / wr);
+//				if (value < minWidthValues[i]) {
+//					// infeasible because doesn't satisfy minimum requirement
+//					children.get(i).layout(cumW, y, minWidthValues[i], h, subRanges.get(i));
+//					cumW += minWidthValues[i];
+//				} else if (value > maxWidthValues[i]) {
+//					// infeasible because doesn't satisfy maximum requirement
+//					children.get(i).layout(cumW, y, maxWidthValues[i], h, subRanges.get(i));
+//					cumW += maxWidthValues[i];
+//				} else {
+					children.get(i).layout(cumW, y, value, h, subRanges.get(i));
+					cumW += value;
+//				}
+				if (value < minWidthValues[i] || value > maxWidthValues[i]) feasible = false;
 			}
 		} // Second, the VERTICAL orientation strategy
 		else if (whr.getOrientationStrategy() == WidthHeightRangeEnum.VERTICAL) {
 			Vector<WidthHeightRange> subRanges = whr.getSubRanges();
+			int totalHeightOfChildren = 0;
 			int[] minHeightValues = new int[subRanges.size()];
 			int[] maxHeightValues = new int[subRanges.size()];
 			for (int i = 0; i < subRanges.size(); i++) {
 				minHeightValues[i] = subRanges.get(i).getMinHeight();
 				maxHeightValues[i] = subRanges.get(i).getMaxHeight();
+				totalHeightOfChildren += subRanges.get(i).getMaxHeight();
 			}
 
-			// TODO Process min and max values to compute optimal values
+			// find the height ratio according to max values
+			float hr = totalHeightOfChildren / (float) h;
 
 			int cumH = 0;
 			for (int i = 0; i < subRanges.size(); i++) {
-				int value = getOptimalHeightValue(minHeightValues[i], maxHeightValues[i], whr);
-				children.get(i).layout(x, cumH, w, value, subRanges.get(i));
-				cumH += value;
+				int value = (int) Math.ceil(maxHeightValues[i] / hr);
+//				if (value < minHeightValues[i]) {
+//					// infeasible because doesn't satisfy minimum requirement
+//					children.get(i).layout(x, cumH, w, minHeightValues[i], subRanges.get(i));
+//					cumH += minHeightValues[i];
+//				} else if (value > maxHeightValues[i]) {
+//					// infeasible because doesn't satisfy maximum requirement
+//					children.get(i).layout(x, cumH, w, maxHeightValues[i], subRanges.get(i));
+//					cumH += maxHeightValues[i];
+//				} else {
+					children.get(i).layout(x, cumH, w, value, subRanges.get(i));
+					cumH += value;
+//				}
+				if (value < minHeightValues[i] || value > maxHeightValues[i]) feasible = false;
 			}
 		} else {
 			log.debug("Shouldn't be here");
 		}
-	}
-
-	private int getOptimalWidthValue(int minWidthValue, int maxWidthValue, WidthHeightRange whr /* whr.Strategy */) {
-		return minWidthValue;
-//	    if (minWidthValue >= whr.getMinWidth() && whr.getMaxWidth() <= maxWidthValue) {
-//			return maxWidthValue;
-//		} else if (whr.getMaxWidth() < maxWidthValue) {
-//			return whr.getMaxWidth();
-//		} else {
-//			return maxWidthValue;
-//		}
-	}
-	private int getOptimalHeightValue(int minHeightValue, int maxHeightValue, WidthHeightRange whr) {
-		return minHeightValue;
-//	    if (minHeightValue >= whr.getMinHeight() && whr.getMaxHeight() <= maxHeightValue) {
-//			return maxHeightValue;
-//		} else if (whr.getMaxHeight() < maxHeightValue) {
-//			return whr.getMaxHeight();
-//		} else {
-//			return maxHeightValue;
-//		}
+		return feasible;
 	}
 
 	public void addComponent (Layoutable comp) {

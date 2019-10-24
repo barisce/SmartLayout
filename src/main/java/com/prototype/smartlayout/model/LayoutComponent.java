@@ -72,11 +72,12 @@ public class LayoutComponent implements Layoutable {
 	}
 
 	@Override
-	public void layout (int x, int y, int w, int h, WidthHeightRange whr) {
+	public boolean layout (int x, int y, int w, int h, WidthHeightRange whr) {
 		// This is the main method that does the computation of layout
 		setAssignedX(x);
 		setAssignedY(y);
 		setAssignedWidth(w);
 		setAssignedHeight(h);
+		return true;
 	}
 }

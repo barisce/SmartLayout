@@ -76,7 +76,7 @@ public interface Layoutable {
 	 * @param r The main.java.com.prototype.smartlayout.model.WidthHeightRange object that holds the
 	 *          layout of the children of this layoutable object.
 	 */
-	void layout (int x, int y, int w, int h, WidthHeightRange r);
+	boolean layout (int x, int y, int w, int h, WidthHeightRange r);
 
 	Vector<WidthHeightRange> getRanges ();
 }
