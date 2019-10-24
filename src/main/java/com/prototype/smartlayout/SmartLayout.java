@@ -172,70 +172,8 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	 */
 	private void run () {
 		log.debug("Starting test...");
-
-        /*
-        A diagram to show what this test is about:
-
-        M
-        +--------------------------------+--------------------------------+
-        |                                |                                |
-        Z                                X                                D
-        +---------------------+          +----------+----------+
-        |                     |          |          |          |
-        Y                     G          A          B          C
-        +----------+
-        |          |
-        E          F
-         */
-
-		LayoutComponent compA =
-				createComponent(
-						"A",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
-		LayoutComponent compB =
-				createComponent(
-						"B",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
-		LayoutComponent compC =
-				createComponent(
-						"C",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
-		LayoutComponent compD =
-				createComponent(
-						"D",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 400, 200, 400));
-		LayoutComponent compE =
-				createComponent(
-						"E",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
-		LayoutComponent compF =
-				createComponent(
-						"F",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
-		LayoutComponent compG =
-				createComponent(
-						"G",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 300, 200, 300));
-
-		LayoutContainer contY = new LayoutContainer();
-		contY.addComponent(compE);
-		contY.addComponent(compF);
-
-		LayoutContainer contZ = new LayoutContainer();
-		contZ.addComponent(contY);
-		contZ.addComponent(compG);
-
-		LayoutContainer contX = new LayoutContainer();
-		contX.addComponent(compA);
-		contX.addComponent(compB);
-		contX.addComponent(compC);
-
-		LayoutContainer contM = new LayoutContainer();
-		contM.addComponent(contZ);
-		contM.addComponent(contX);
-		contM.addComponent(compD);
-
-		root = contM;
+		testCase1();
+//		testCase2();
 
 		finalLayoutCases = root.getRanges();
 		log.debug(finalLayoutCases);
@@ -378,6 +316,148 @@ public class SmartLayout extends JFrame implements ComponentListener {
 
 	@Override
 	public void componentHidden (ComponentEvent componentEvent) {
+	}
+
+	private void testCase1 () {
+		/*
+		A diagram to show what this test is about:
+
+		M
+		+--------------------------------+--------------------------------+
+		|                                |                                |
+		Z                                X                                D
+		+---------------------+          +----------+----------+
+		|                     |          |          |          |
+		Y                     G          A          B          C
+		+----------+
+		|          |
+		E          F
+		*/
+
+		LayoutComponent compA =
+				createComponent(
+						"A",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
+		LayoutComponent compB =
+				createComponent(
+						"B",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
+		LayoutComponent compC =
+				createComponent(
+						"C",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
+		LayoutComponent compD =
+				createComponent(
+						"D",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 400, 200, 400));
+		LayoutComponent compE =
+				createComponent(
+						"E",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
+		LayoutComponent compF =
+				createComponent(
+						"F",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
+		LayoutComponent compG =
+				createComponent(
+						"G",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 300, 200, 300));
+
+		LayoutContainer contY = new LayoutContainer();
+		contY.addComponent(compE);
+		contY.addComponent(compF);
+
+		LayoutContainer contZ = new LayoutContainer();
+		contZ.addComponent(contY);
+		contZ.addComponent(compG);
+
+		LayoutContainer contX = new LayoutContainer();
+		contX.addComponent(compA);
+		contX.addComponent(compB);
+		contX.addComponent(compC);
+
+		LayoutContainer contM = new LayoutContainer();
+		contM.addComponent(contZ);
+		contM.addComponent(contX);
+		contM.addComponent(compD);
+
+		root = contM;
+	}
+
+	private void testCase2 () {
+		/*
+		A diagram to show what this test is about:
+
+		                      M
+		           +----------+----------+---------+
+		           |                               |
+		           K                               Z
+		+----------+                    +----------+
+		|          |                    |          |
+		A          Y                    E          T
+				   +----------+                    +----------+
+				   |          |                    |          |
+				   X          D                    F          G
+		+----------+
+		|          |
+		B          C
+		*/
+
+		LayoutComponent compA =
+				createComponent(
+						"A",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
+		LayoutComponent compB =
+				createComponent(
+						"B",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
+		LayoutComponent compC =
+				createComponent(
+						"C",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
+		LayoutComponent compD =
+				createComponent(
+						"D",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 400, 200, 400));
+		LayoutComponent compE =
+				createComponent(
+						"E",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
+		LayoutComponent compF =
+				createComponent(
+						"F",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
+		LayoutComponent compG =
+				createComponent(
+						"G",
+						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 300, 200, 300));
+
+		LayoutContainer contX = new LayoutContainer();
+		contX.addComponent(compB);
+		contX.addComponent(compC);
+
+		LayoutContainer contY = new LayoutContainer();
+		contY.addComponent(contX);
+		contY.addComponent(compD);
+
+		LayoutContainer contK = new LayoutContainer();
+		contK.addComponent(contY);
+		contK.addComponent(compA);
+
+		LayoutContainer contT = new LayoutContainer();
+		contT.addComponent(compF);
+		contT.addComponent(compG);
+
+		LayoutContainer contZ = new LayoutContainer();
+		contZ.addComponent(compE);
+		contZ.addComponent(contT);
+
+
+		LayoutContainer contM = new LayoutContainer();
+		contM.addComponent(contK);
+		contM.addComponent(contZ);
+
+		root = contM;
 	}
 
 	public class CanvasMouseListener implements MouseListener, MouseWheelListener {
