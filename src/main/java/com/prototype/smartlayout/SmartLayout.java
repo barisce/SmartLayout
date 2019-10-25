@@ -2,10 +2,9 @@ package com.prototype.smartlayout;
 
 import com.prototype.smartlayout.listeners.KeyInputHandler;
 import com.prototype.smartlayout.model.LayoutComponent;
-import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.Layoutable;
 import com.prototype.smartlayout.model.WidthHeightRange;
-import com.prototype.smartlayout.model.WidthHeightRangeEnum;
+import com.prototype.smartlayout.utils.TestCaseUtils;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -40,7 +39,6 @@ import org.apache.log4j.PropertyConfigurator;
 public class SmartLayout extends JFrame implements ComponentListener {
 	private static final long serialVersionUID = 6944709955451188697L;
 	private static final Color TRANSPARENT_BLACK = new Color(0f, 0f, 0f, 0.4f);
-	private final Vector<LayoutComponent> components;
 	private final JPanel panel;
 	private JLabel lblFeasible;
 	private JTextField txtnum1;
@@ -53,7 +51,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 
 	private SmartLayout () {
 		super();
-		components = new Vector<>();
+		TestCaseUtils.components = new Vector<>();
 		root = null;
 		finalLayoutCases = null;
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -82,7 +80,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			public void keyPressed (KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					// Draw the selected layout
-					finalLayoutCases = root.getRanges();
+					finalLayoutCases = root.getRanges(true);
 					if (root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCases.get(comboBox.getSelectedIndex()))) {
 						lblFeasible.setForeground(Color.BLUE);
 						lblFeasible.setText("Fea");
@@ -150,20 +148,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		SmartLayout app = new SmartLayout();
 		app.run();
 //		app.setSize(app.root.getAssignedWidth() + 50, app.root.getAssignedHeight() + 50);
-		app.setSize(1300, 800);
-	}
-
-	/**
-	 * Creates a new component under this layout.
-	 *
-	 * @param label The label of the new component.
-	 * @param range The width and height range of the new component.
-	 * @return The component to be created.
-	 */
-	private LayoutComponent createComponent (String label, WidthHeightRange range) {
-		LayoutComponent c = new LayoutComponent(label, range);
-		components.add(c);
-		return c;
+		app.setSize(1280, 720);
 	}
 
 	/**
@@ -172,10 +157,10 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	 */
 	private void run () {
 		log.debug("Starting test...");
-		testCase1();
-//		testCase2();
+		// give the test number that you want to execute
+		root = TestCaseUtils.executeTest(1);
 
-		finalLayoutCases = root.getRanges();
+		finalLayoutCases = root.getRanges(true);
 		log.debug(finalLayoutCases);
 		if (root.layout(0, 0, 800, 300, finalLayoutCases.get(0))) {
 			lblFeasible.setForeground(Color.BLUE);
@@ -183,6 +168,29 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		} else {
 			lblFeasible.setForeground(Color.RED);
 			lblFeasible.setText("Inf");
+		}
+	}
+
+	@Override
+	public void componentResized (ComponentEvent componentEvent) {
+		if (root == null) {
+			return;
+		}
+		setResizeOnRoot();
+		getFinalLayoutCases();
+		boolean feasible = this.root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getFeasibleLayout(finalLayoutCases));
+		log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
+
+		panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
+		drawLayout();
+		if (feasible) {
+			lblFeasible.setForeground(Color.BLUE);
+			lblFeasible.setText("Fea");
+//			drawLayout();
+		} else {
+			lblFeasible.setForeground(Color.RED);
+			lblFeasible.setText("Inf");
+//			drawBlank();
 		}
 	}
 
@@ -204,7 +212,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		buffer = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
 		bufferGraphics = buffer.createGraphics();
 
-		for (LayoutComponent c : components) {
+		for (LayoutComponent c : TestCaseUtils.components) {
 			int x = c.getAssignedX();
 			int y = c.getAssignedY();
 			int w = c.getAssignedWidth();
@@ -246,34 +254,15 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		panel.getGraphics().drawImage(buffer, 0, 0, null);
 	}
 
+	/**
+	 * This method fills the combobox with feasible layouts so that
+	 * we can choose and see how that layout looks like in that resolution.
+	 */
 	private void getFinalLayoutCases () {
-		finalLayoutCases = root.getRanges();
+		finalLayoutCases = root.getRanges(true);
 		comboBox.removeAllItems();
 		for (int i = 0; i < finalLayoutCases.size(); i++) {
 			comboBox.addItem(finalLayoutCases.get(i));
-		}
-	}
-
-	@Override
-	public void componentResized (ComponentEvent componentEvent) {
-		if (root == null) {
-			return;
-		}
-		setResizeOnRoot();
-		getFinalLayoutCases();
-		boolean feasible = this.root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getFeasibleLayout(finalLayoutCases));
-		log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
-
-		panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
-		drawLayout();
-		if (feasible) {
-			lblFeasible.setForeground(Color.BLUE);
-			lblFeasible.setText("Fea");
-//			drawLayout();
-		} else {
-			lblFeasible.setForeground(Color.RED);
-			lblFeasible.setText("Inf");
-//			drawBlank();
 		}
 	}
 
@@ -316,148 +305,6 @@ public class SmartLayout extends JFrame implements ComponentListener {
 
 	@Override
 	public void componentHidden (ComponentEvent componentEvent) {
-	}
-
-	private void testCase1 () {
-		/*
-		A diagram to show what this test is about:
-
-		M
-		+--------------------------------+--------------------------------+
-		|                                |                                |
-		Z                                X                                D
-		+---------------------+          +----------+----------+
-		|                     |          |          |          |
-		Y                     G          A          B          C
-		+----------+
-		|          |
-		E          F
-		*/
-
-		LayoutComponent compA =
-				createComponent(
-						"A",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
-		LayoutComponent compB =
-				createComponent(
-						"B",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
-		LayoutComponent compC =
-				createComponent(
-						"C",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
-		LayoutComponent compD =
-				createComponent(
-						"D",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 400, 200, 400));
-		LayoutComponent compE =
-				createComponent(
-						"E",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
-		LayoutComponent compF =
-				createComponent(
-						"F",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
-		LayoutComponent compG =
-				createComponent(
-						"G",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 300, 200, 300));
-
-		LayoutContainer contY = new LayoutContainer();
-		contY.addComponent(compE);
-		contY.addComponent(compF);
-
-		LayoutContainer contZ = new LayoutContainer();
-		contZ.addComponent(contY);
-		contZ.addComponent(compG);
-
-		LayoutContainer contX = new LayoutContainer();
-		contX.addComponent(compA);
-		contX.addComponent(compB);
-		contX.addComponent(compC);
-
-		LayoutContainer contM = new LayoutContainer();
-		contM.addComponent(contZ);
-		contM.addComponent(contX);
-		contM.addComponent(compD);
-
-		root = contM;
-	}
-
-	private void testCase2 () {
-		/*
-		A diagram to show what this test is about:
-
-		                      M
-		           +----------+----------+---------+
-		           |                               |
-		           K                               Z
-		+----------+                    +----------+
-		|          |                    |          |
-		A          Y                    E          T
-				   +----------+                    +----------+
-				   |          |                    |          |
-				   X          D                    F          G
-		+----------+
-		|          |
-		B          C
-		*/
-
-		LayoutComponent compA =
-				createComponent(
-						"A",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
-		LayoutComponent compB =
-				createComponent(
-						"B",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
-		LayoutComponent compC =
-				createComponent(
-						"C",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
-		LayoutComponent compD =
-				createComponent(
-						"D",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 400, 200, 400));
-		LayoutComponent compE =
-				createComponent(
-						"E",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
-		LayoutComponent compF =
-				createComponent(
-						"F",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
-		LayoutComponent compG =
-				createComponent(
-						"G",
-						new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 300, 200, 300));
-
-		LayoutContainer contX = new LayoutContainer();
-		contX.addComponent(compB);
-		contX.addComponent(compC);
-
-		LayoutContainer contY = new LayoutContainer();
-		contY.addComponent(contX);
-		contY.addComponent(compD);
-
-		LayoutContainer contK = new LayoutContainer();
-		contK.addComponent(contY);
-		contK.addComponent(compA);
-
-		LayoutContainer contT = new LayoutContainer();
-		contT.addComponent(compF);
-		contT.addComponent(compG);
-
-		LayoutContainer contZ = new LayoutContainer();
-		contZ.addComponent(compE);
-		contZ.addComponent(contT);
-
-
-		LayoutContainer contM = new LayoutContainer();
-		contM.addComponent(contK);
-		contM.addComponent(contZ);
-
-		root = contM;
 	}
 
 	public class CanvasMouseListener implements MouseListener, MouseWheelListener {

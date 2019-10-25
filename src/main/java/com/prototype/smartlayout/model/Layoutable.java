@@ -78,5 +78,5 @@ public interface Layoutable {
 	 */
 	boolean layout (int x, int y, int w, int h, WidthHeightRange r);
 
-	Vector<WidthHeightRange> getRanges ();
+	Vector<WidthHeightRange> getRanges (boolean recalculate);
 }

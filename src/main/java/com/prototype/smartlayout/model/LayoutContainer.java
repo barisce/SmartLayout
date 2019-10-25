@@ -1,5 +1,7 @@
 package com.prototype.smartlayout.model;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,13 +12,16 @@ import lombok.extern.log4j.Log4j;
 @Log4j
 public class LayoutContainer implements Layoutable {
 
+	private final String id;
 	private final Vector<Layoutable> children;
 	private int assignedX;
 	private int assignedY;
 	private int assignedWidth;
 	private int assignedHeight;
+	private Map<String, Vector<WidthHeightRange>> memo = new HashMap<>();
 
-	public LayoutContainer () {
+	public LayoutContainer (String id) {
+		this.id = id;
 		children = new Vector<>();
 	}
 
@@ -65,11 +70,22 @@ public class LayoutContainer implements Layoutable {
 	 * @return All possible layout combinations for this container.
 	 */
 	@Override
-	public Vector<WidthHeightRange> getRanges () {
+	public Vector<WidthHeightRange> getRanges (boolean recalculate) {
 		// vec is what we will return at the end.
-		// TODO: Neden containerların widthheigthrange objesi yok. Subrangesa iki kere giriyor.
-		// movingRanges and tempRanges are used temporarily for creating all possible
-		// layouts.
+		// TODO: Neden containerların widthheigthrange objesi yok? Çünkü on the go hesaplanıyor. leafdeki widhtHeightRange direkt dönüyor.
+		// TODO: containerdaki ise getRanges() metoduyla doldurulup dönüyor.
+		// movingRanges and tempRanges are used temporarily for creating all possible layouts.
+
+		// when in recursion recalculate must be false so we keep the calculated value.
+		// when resize happens we pass true such as onPanelResize()
+		if (recalculate) {
+			memo.clear();
+		}
+
+		// if we already calculated it no need to do it again.
+		if (memo.containsKey(id)) {
+			return memo.get(id);
+		}
 
 		Vector<WidthHeightRange> movingRanges = new Vector<>();
 		Vector<WidthHeightRange> tempRanges = new Vector<>();
@@ -79,7 +95,7 @@ public class LayoutContainer implements Layoutable {
 		// We will iterate over all children and one by one integrate them to the solution
 		for (Layoutable layoutable : children) {
 			// Get all possible ranges (layouts) for the layoutable child, layoutable
-			Vector<WidthHeightRange> compVec = layoutable.getRanges();
+			Vector<WidthHeightRange> compVec = layoutable.getRanges(false); // inside recursion, keep the calculated values.
 			tempRanges.clear();
 
 			if (movingRanges.isEmpty()) {
@@ -122,7 +138,7 @@ public class LayoutContainer implements Layoutable {
 							newRange.addSubRanges(whr.getSubRanges());
 							newRange.addSubRange(whrNew);
 							tempRanges.add(newRange);
-						}
+						} // else koşulunda max - min lik bir filler yapılabilir
 					}
 				}
 
@@ -138,7 +154,7 @@ public class LayoutContainer implements Layoutable {
 		movingRanges.clear();
 
 		for (Layoutable layoutable : children) {
-			Vector<WidthHeightRange> compVec = layoutable.getRanges();
+			Vector<WidthHeightRange> compVec = layoutable.getRanges(false); // inside recursion, keep the calculated values.
 			tempRanges.clear();
 
 			if (movingRanges.isEmpty()) {
@@ -189,6 +205,7 @@ public class LayoutContainer implements Layoutable {
 		}
 
 		vec.addAll(movingRanges);
+		memo.put(id, vec);
 
 		return vec;
 	}
@@ -229,8 +246,8 @@ public class LayoutContainer implements Layoutable {
 //					children.get(i).layout(cumW, y, maxWidthValues[i], h, subRanges.get(i));
 //					cumW += maxWidthValues[i];
 //				} else {
-					children.get(i).layout(cumW, y, value, h, subRanges.get(i));
-					cumW += value;
+				children.get(i).layout(cumW, y, value, h, subRanges.get(i));
+				cumW += value;
 //				}
 				if (value < minWidthValues[i] || value > maxWidthValues[i]) feasible = false;
 			}
@@ -261,8 +278,8 @@ public class LayoutContainer implements Layoutable {
 //					children.get(i).layout(x, cumH, w, maxHeightValues[i], subRanges.get(i));
 //					cumH += maxHeightValues[i];
 //				} else {
-					children.get(i).layout(x, cumH, w, value, subRanges.get(i));
-					cumH += value;
+				children.get(i).layout(x, cumH, w, value, subRanges.get(i));
+				cumH += value;
 //				}
 				if (value < minHeightValues[i] || value > maxHeightValues[i]) feasible = false;
 			}

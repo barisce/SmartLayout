@@ -65,7 +65,7 @@ public class LayoutComponent implements Layoutable {
 	 * @return The associated WidthHeightRange object.
 	 */
 	@Override
-	public Vector<WidthHeightRange> getRanges () {
+	public Vector<WidthHeightRange> getRanges (boolean recalculate) {
 		Vector<WidthHeightRange> vec = new Vector<>();
 		vec.add(widthHeightRange);
 		return vec;
