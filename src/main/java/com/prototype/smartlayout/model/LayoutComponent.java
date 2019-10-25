@@ -78,6 +78,7 @@ public class LayoutComponent implements Layoutable {
 		setAssignedY(y);
 		setAssignedWidth(w);
 		setAssignedHeight(h);
+		log.debug(label + " - X: " + x + " Y: "+ y + " Width: " + w + " Height: " + h);
 		return true;
 	}
 }

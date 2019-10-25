@@ -76,15 +76,17 @@ public class LayoutContainer implements Layoutable {
 		// TODO: containerdaki ise getRanges() metoduyla doldurulup dönüyor.
 		// movingRanges and tempRanges are used temporarily for creating all possible layouts.
 
+		//TODO: recalculate yerine herkes kendi instance'ındaki vector unu temizleyecek, dışardan temizle sonra tutarak ilerle.
+
 		// when in recursion recalculate must be false so we keep the calculated value.
 		// when resize happens we pass true such as onPanelResize()
 		if (recalculate) {
-			memo.clear();
+			memo.clear(); // TODO  clear'ı dışarı taşı
 		}
 
 		// if we already calculated it no need to do it again.
 		if (memo.containsKey(id)) {
-			return memo.get(id);
+			return memo.get(id); // TODO Map e gerek yok obje ile hallet. Onun yerine null check yap
 		}
 
 		Vector<WidthHeightRange> movingRanges = new Vector<>();
@@ -246,7 +248,7 @@ public class LayoutContainer implements Layoutable {
 //					children.get(i).layout(cumW, y, maxWidthValues[i], h, subRanges.get(i));
 //					cumW += maxWidthValues[i];
 //				} else {
-				children.get(i).layout(cumW, y, value, h, subRanges.get(i));
+				children.get(i).layout(x+cumW, y, value, h, subRanges.get(i));
 				cumW += value;
 //				}
 				if (value < minWidthValues[i] || value > maxWidthValues[i]) feasible = false;
@@ -278,7 +280,7 @@ public class LayoutContainer implements Layoutable {
 //					children.get(i).layout(x, cumH, w, maxHeightValues[i], subRanges.get(i));
 //					cumH += maxHeightValues[i];
 //				} else {
-				children.get(i).layout(x, cumH, w, value, subRanges.get(i));
+				children.get(i).layout(x, y+cumH, w, value, subRanges.get(i));
 				cumH += value;
 //				}
 				if (value < minHeightValues[i] || value > maxHeightValues[i]) feasible = false;

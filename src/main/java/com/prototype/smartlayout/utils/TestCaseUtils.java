@@ -167,8 +167,8 @@ public class TestCaseUtils {
 			contY.addComponent(compD);
 
 			LayoutContainer contK = new LayoutContainer("K");
-			contK.addComponent(contY);
 			contK.addComponent(compA);
+			contK.addComponent(contY);
 
 			LayoutContainer contT = new LayoutContainer("T");
 			contT.addComponent(compF);
