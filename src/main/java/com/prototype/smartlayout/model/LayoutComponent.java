@@ -11,6 +11,7 @@ import lombok.extern.log4j.Log4j;
 public class LayoutComponent implements Layoutable {
     private final WidthHeightRange widthHeightRange;
     private final String label;
+    private boolean isFeasible;
     private int assignedX;
     private int assignedY;
     private int assignedWidth;
@@ -65,7 +66,7 @@ public class LayoutComponent implements Layoutable {
 	 * @return The associated WidthHeightRange object.
 	 */
 	@Override
-	public Vector<WidthHeightRange> getRanges (boolean recalculate) {
+	public Vector<WidthHeightRange> getRanges () {
 		Vector<WidthHeightRange> vec = new Vector<>();
 		vec.add(widthHeightRange);
 		return vec;
@@ -78,7 +79,8 @@ public class LayoutComponent implements Layoutable {
 		setAssignedY(y);
 		setAssignedWidth(w);
 		setAssignedHeight(h);
+		setFeasible(w >= whr.getMinWidth() && w <= whr.getMaxWidth() && h >= whr.getMinHeight() && h <= whr.getMaxHeight());
 		log.debug(label + " - X: " + x + " Y: "+ y + " Width: " + w + " Height: " + h);
-		return true;
+		return isFeasible;
 	}
 }

@@ -2,17 +2,19 @@ package com.prototype.smartlayout;
 
 import com.prototype.smartlayout.listeners.KeyInputHandler;
 import com.prototype.smartlayout.model.LayoutComponent;
+import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.Layoutable;
 import com.prototype.smartlayout.model.WidthHeightRange;
 import com.prototype.smartlayout.utils.TestCaseUtils;
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Graphics2D;
+import java.awt.Stroke;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
@@ -22,8 +24,11 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -40,11 +45,13 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	private static final long serialVersionUID = 6944709955451188697L;
 	private static final Color TRANSPARENT_BLACK = new Color(0f, 0f, 0f, 0.4f);
 	private final JPanel panel;
-	private JLabel lblFeasible;
+	private JCheckBox showOnlyFeasibleLayouts = new JCheckBox("");
 	private JTextField txtnum1;
 	private JTextField txtnum2;
 	private JComboBox comboBox;
+	private List<Color> colorList = new ArrayList<>();
 	private Layoutable root;
+	private BasicStroke correctnessStroke = new BasicStroke(4);
 	private BufferedImage buffer;
 	private Graphics bufferGraphics;
 	private Vector<WidthHeightRange> finalLayoutCases;
@@ -65,8 +72,8 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		panel.addMouseWheelListener(new CanvasMouseListener());
 		panel.addKeyListener(new KeyInputHandler());
 
-		lblFeasible = new JLabel("Fea");
-		topPanel.add(lblFeasible);
+		showOnlyFeasibleLayouts.addItemListener(e -> getFinalLayoutCases());
+		topPanel.add(showOnlyFeasibleLayouts);
 
 		JLabel lblCombo = new JLabel("Feasible Layouts: ");
 		topPanel.add(lblCombo);
@@ -80,14 +87,9 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			public void keyPressed (KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					// Draw the selected layout
-					finalLayoutCases = root.getRanges(true);
-					if (root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCases.get(comboBox.getSelectedIndex()))) {
-						lblFeasible.setForeground(Color.BLUE);
-						lblFeasible.setText("Fea");
-					} else {
-						lblFeasible.setForeground(Color.RED);
-						lblFeasible.setText("Inf");
-					}
+					((LayoutContainer) root).clearMemoization();
+					finalLayoutCases = root.getRanges();
+					root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCases.get(comboBox.getSelectedIndex()));
 					drawLayout();
 				}
 			}
@@ -113,21 +115,13 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		topPanel.add(txtnum2);
 
 		JButton button = new JButton("Resize");
-		button.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed (ActionEvent e) {
-				root.setAssignedWidth(Integer.parseInt(txtnum1.getText()));
-				root.setAssignedHeight(Integer.parseInt(txtnum2.getText()));
-				getFinalLayoutCases();
-				if (root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getFeasibleLayout(finalLayoutCases))) {
-					lblFeasible.setForeground(Color.BLUE);
-					lblFeasible.setText("Fea");
-				} else {
-					lblFeasible.setForeground(Color.RED);
-					lblFeasible.setText("Inf");
-				}
-				drawLayout();
-			}
+		button.addActionListener(e -> {
+			root.setAssignedWidth(Integer.parseInt(txtnum1.getText()));
+			root.setAssignedHeight(Integer.parseInt(txtnum2.getText()));
+			getFinalLayoutCases();
+			root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getFeasibleLayout(finalLayoutCases));
+			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 75);
+			drawLayout();
 		});
 		topPanel.add(button);
 		outerPanel.add(panel, BorderLayout.CENTER);
@@ -160,15 +154,14 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		// give the test number that you want to execute
 		root = TestCaseUtils.executeTest(1);
 
-		finalLayoutCases = root.getRanges(true);
-		log.debug(finalLayoutCases);
-		if (root.layout(0, 0, 800, 300, finalLayoutCases.get(0))) {
-			lblFeasible.setForeground(Color.BLUE);
-			lblFeasible.setText("Fea");
-		} else {
-			lblFeasible.setForeground(Color.RED);
-			lblFeasible.setText("Inf");
+		for (LayoutComponent ignored : TestCaseUtils.components) {
+			colorList.add(new Color(100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100)));
 		}
+
+		((LayoutContainer) root).clearMemoization();
+		finalLayoutCases = root.getRanges();
+		log.debug(finalLayoutCases);
+		root.layout(0, 0, 800, 300, finalLayoutCases.get(0));
 	}
 
 	@Override
@@ -178,20 +171,13 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		}
 		setResizeOnRoot();
 		getFinalLayoutCases();
-		boolean feasible = this.root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getFeasibleLayout(finalLayoutCases));
+		this.root.layout(0, 0, root.getAssignedWidth() > 0 ? root.getAssignedWidth() : 0, root.getAssignedHeight() > 0 ? root.getAssignedHeight() : 0, getFeasibleLayout(finalLayoutCases));
 		log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
 
 		panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
+		txtnum1.setText(root.getAssignedWidth() + "");
+		txtnum2.setText(root.getAssignedHeight() + "");
 		drawLayout();
-		if (feasible) {
-			lblFeasible.setForeground(Color.BLUE);
-			lblFeasible.setText("Fea");
-//			drawLayout();
-		} else {
-			lblFeasible.setForeground(Color.RED);
-			lblFeasible.setText("Inf");
-//			drawBlank();
-		}
 	}
 
 	private void drawBlank () {
@@ -212,7 +198,9 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		buffer = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
 		bufferGraphics = buffer.createGraphics();
 
-		for (LayoutComponent c : TestCaseUtils.components) {
+		Vector<LayoutComponent> components = TestCaseUtils.components;
+		for (int i = 0; i < components.size(); i++) {
+			LayoutComponent c = components.get(i);
 			int x = c.getAssignedX();
 			int y = c.getAssignedY();
 			int w = c.getAssignedWidth();
@@ -221,13 +209,21 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			int maxWidth = c.getWidthHeightRange().getMaxWidth();
 			int minHeight = c.getWidthHeightRange().getMinHeight();
 			int maxHeight = c.getWidthHeightRange().getMaxHeight();
-			int red = 100 + (int) (Math.random() * 100);
-			int gre = 100 + (int) (Math.random() * 100);
-			int blu = 100 + (int) (Math.random() * 100);
-			// System.out.println(c + " " + red + " " + gre + " " + blu);
 
-			bufferGraphics.setColor(new Color(red, gre, blu));
+			bufferGraphics.setColor(colorList.get(i));
 			bufferGraphics.fillRect(x, y, w, h);
+
+			if (c.isFeasible()) {
+				bufferGraphics.setColor(Color.GREEN);
+			} else {
+				bufferGraphics.setColor(Color.RED);
+			}
+			Graphics2D g2 = (Graphics2D) bufferGraphics;
+			Stroke oldStroke = g2.getStroke();
+			g2.setStroke(correctnessStroke);
+			g2.drawRect(x, y, w, h);
+			g2.setStroke(oldStroke);
+
 
 			bufferGraphics.setColor(Color.black);
 			bufferGraphics.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -259,11 +255,22 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	 * we can choose and see how that layout looks like in that resolution.
 	 */
 	private void getFinalLayoutCases () {
-		finalLayoutCases = root.getRanges(true);
+		((LayoutContainer) root).clearMemoization();
+		finalLayoutCases = root.getRanges();
 		comboBox.removeAllItems();
-		for (int i = 0; i < finalLayoutCases.size(); i++) {
-			comboBox.addItem(finalLayoutCases.get(i));
+		for (WidthHeightRange finalLayoutCase : finalLayoutCases) {
+			// If the checkbox is selected, then add if and only if layout's minimum requirements are satisfied.
+			if (!showOnlyFeasibleLayouts.isSelected() || isLayoutFeasible(root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCase)) {
+				comboBox.addItem(finalLayoutCase);
+			}
 		}
+	}
+
+	/**
+	 * In this method we only need to check if the minimum values match because if the values exceed maximum we can still fit inside.
+	 */
+	private boolean isLayoutFeasible (int w, int h, WidthHeightRange whr) {
+		return w >= whr.getMinWidth() && h >= whr.getMinHeight();
 	}
 
 	private WidthHeightRange getFeasibleLayout (Vector<WidthHeightRange> layouts) {
@@ -340,17 +347,16 @@ public class SmartLayout extends JFrame implements ComponentListener {
 				// DOWN
 				root.setAssignedWidth(Math.max(0, root.getAssignedWidth() - 50));
 				root.setAssignedHeight(Math.max(0, root.getAssignedHeight() - 50));
-				panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
 				getFinalLayoutCases();
 				root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCases.get(counter));
 			} else {
 				// UP
 				root.setAssignedWidth(root.getAssignedWidth() + 50);
 				root.setAssignedHeight(root.getAssignedHeight() + 50);
-				panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
 				getFinalLayoutCases();
 				root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCases.get(counter));
 			}
+			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 75);
 			logger.debug("Width - " + root.getAssignedWidth() + " Y - " + root.getAssignedHeight());
 			log.debug(finalLayoutCases);
 			repaint();
