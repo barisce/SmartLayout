@@ -80,7 +80,7 @@ public class LayoutComponent implements Layoutable {
 		setAssignedWidth(w);
 		setAssignedHeight(h);
 		setFeasible(w >= whr.getMinWidth() && w <= whr.getMaxWidth() && h >= whr.getMinHeight() && h <= whr.getMaxHeight());
-		log.debug(label + " - X: " + x + " Y: "+ y + " Width: " + w + " Height: " + h);
+//		log.debug(label + " - X: " + x + " Y: "+ y + " Width: " + w + " Height: " + h);
 		return isFeasible;
 	}
 }

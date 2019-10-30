@@ -87,9 +87,12 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			public void keyPressed (KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					// Draw the selected layout
-					((LayoutContainer) root).clearMemoization();
-					finalLayoutCases = root.getRanges();
+					// FIXME: Buna gerek var mı?
+//					((LayoutContainer) root).clearMemoization();
+//					finalLayoutCases = root.getRanges();
+					// FIXME: combobox ın indexiyle finalLayoutCases ın indexi uyuşmuyor.
 					root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCases.get(comboBox.getSelectedIndex()));
+					log.debug(finalLayoutCases.get(comboBox.getSelectedIndex()));
 					drawLayout();
 				}
 			}
@@ -121,6 +124,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			getFinalLayoutCases();
 			root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getFeasibleLayout(finalLayoutCases));
 			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 75);
+			log.debug(getFeasibleLayout(finalLayoutCases));
 			drawLayout();
 		});
 		topPanel.add(button);
@@ -270,7 +274,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	 * In this method we only need to check if the minimum values match because if the values exceed maximum we can still fit inside.
 	 */
 	private boolean isLayoutFeasible (int w, int h, WidthHeightRange whr) {
-		return w >= whr.getMinWidth() && h >= whr.getMinHeight();
+		return w >= whr.getMinWidth() && w <= whr.getMaxWidth() && h >= whr.getMinHeight() && h <= whr.getMaxHeight();
 	}
 
 	private WidthHeightRange getFeasibleLayout (Vector<WidthHeightRange> layouts) {
@@ -279,18 +283,16 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		}
 
 		// Start with max values since we try to find minimum values
-		double minWidthDiff = Integer.MAX_VALUE;
-		double minHeightDiff = Integer.MAX_VALUE;
+		double minDiff = Integer.MAX_VALUE;
 		WidthHeightRange bestFit = null;
-
+		// TODO : Fizibiliteye bakilacak.
 		for (WidthHeightRange range : layouts) {
 			// Find closest pair of points according to root point.
 			double minsDist = Math.sqrt(Math.pow(root.getAssignedWidth() - range.getMinWidth(), 2) + Math.pow(root.getAssignedHeight() - range.getMinHeight(), 2));
 			double maxsDist = Math.sqrt(Math.pow(root.getAssignedWidth() - range.getMaxWidth(), 2) + Math.pow(root.getAssignedHeight() - range.getMaxHeight(), 2));
 			// if both min and max values of possible layouts are less than our current distance set the new values
-			if (minsDist < minWidthDiff && maxsDist < minHeightDiff) {
-				minWidthDiff = minsDist;
-				minHeightDiff = maxsDist;
+			if (Math.max(minsDist, maxsDist) < minDiff) {
+				minDiff = Math.max(minsDist, maxsDist);
 				bestFit = range;
 			}
 		}

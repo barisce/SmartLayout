@@ -317,6 +317,7 @@ public class LayoutContainer implements Layoutable {
 				children.get(i).layout(x, y + cum, w, value, subRanges.get(i));
 			}
 			cum += value;
+			// TODO width height tan çıkara çıkara ilerlenebilir. Böylelikle 2-3 pixel artık kalmaz
 		}
 	}
 

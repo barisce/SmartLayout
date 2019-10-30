@@ -61,15 +61,15 @@ public class TestCaseUtils {
 			LayoutComponent compA =
 					createComponent(
 							"A",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 50, 250, 50, 250));
 			LayoutComponent compB =
 					createComponent(
 							"B",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 50, 250, 50, 250));
 			LayoutComponent compC =
 					createComponent(
 							"C",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 50, 250, 50, 250));
 			LayoutComponent compD =
 					createComponent(
 							"D",
@@ -77,15 +77,15 @@ public class TestCaseUtils {
 			LayoutComponent compE =
 					createComponent(
 							"E",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 500, 50, 150));
 			LayoutComponent compF =
 					createComponent(
 							"F",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 500, 50, 150));
 			LayoutComponent compG =
 					createComponent(
 							"G",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 300, 200, 300));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 400, 100, 400));
 
 			LayoutContainer contY = new LayoutContainer("Y");
 			contY.addComponent(compE);
@@ -132,31 +132,31 @@ public class TestCaseUtils {
 			LayoutComponent compA =
 					createComponent(
 							"A",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 50, 250, 50, 250));
 			LayoutComponent compB =
 					createComponent(
 							"B",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 50, 250, 50, 250));
 			LayoutComponent compC =
 					createComponent(
 							"C",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 100, 100));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 50, 250, 50, 250));
 			LayoutComponent compD =
 					createComponent(
 							"D",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 400, 200, 400));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 450, 200, 450));
 			LayoutComponent compE =
 					createComponent(
 							"E",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 500, 50, 250));
 			LayoutComponent compF =
 					createComponent(
 							"F",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 400, 100, 150));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 500, 50, 250));
 			LayoutComponent compG =
 					createComponent(
 							"G",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 300, 200, 300));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 150, 450, 150, 350));
 
 			LayoutContainer contX = new LayoutContainer("X");
 			contX.addComponent(compB);
@@ -207,19 +207,19 @@ public class TestCaseUtils {
 			LayoutComponent compA =
 					createComponent(
 							"A",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 150, 150, 200));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 250, 150, 400));
 			LayoutComponent compB =
 					createComponent(
 							"B",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 200, 150, 200));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 300, 150, 400));
 			LayoutComponent compC =
 					createComponent(
 							"C",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 300, 350, 150, 200));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 350, 150, 400));
 			LayoutComponent compD =
 					createComponent(
 							"D",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 150, 200, 250, 250));
+							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 150, 300, 250, 500));
 			LayoutComponent compE =
 					createComponent(
 							"E",
