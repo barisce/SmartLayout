@@ -1,4 +1,4 @@
-package com.prototype.smartlayout.model;
+package com.prototype.smartlayout.model.enums;
 
 public enum WidthHeightRangeEnum {
 	SINGLE(0),

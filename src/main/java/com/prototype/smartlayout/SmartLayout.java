@@ -87,13 +87,13 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			public void keyPressed (KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					// Draw the selected layout
-					// FIXME: Buna gerek var mı?
-//					((LayoutContainer) root).clearMemoization();
-//					finalLayoutCases = root.getRanges();
-					// FIXME: combobox ın indexiyle finalLayoutCases ın indexi uyuşmuyor.
-					root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCases.get(comboBox.getSelectedIndex()));
-					log.debug(finalLayoutCases.get(comboBox.getSelectedIndex()));
-					drawLayout();
+					for (WidthHeightRange finalLayoutCase : finalLayoutCases) {
+						if (finalLayoutCase.toString().equals(comboBox.getSelectedItem().toString())) {
+							root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCase);
+							log.debug(finalLayoutCases.get(comboBox.getSelectedIndex()));
+							drawLayout();
+						}
+					}
 				}
 			}
 
@@ -156,7 +156,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	private void run () {
 		log.debug("Starting test...");
 		// give the test number that you want to execute
-		root = TestCaseUtils.executeTest(1);
+		root = TestCaseUtils.executeTest(5);
 
 		for (LayoutComponent ignored : TestCaseUtils.components) {
 			colorList.add(new Color(100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100)));

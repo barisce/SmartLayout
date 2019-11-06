@@ -1,5 +1,6 @@
 package com.prototype.smartlayout.model;
 
+import com.prototype.smartlayout.model.enums.WidthHeightRangeEnum;
 import java.util.Vector;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
