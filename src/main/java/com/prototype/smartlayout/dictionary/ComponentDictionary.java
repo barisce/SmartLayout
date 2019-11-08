@@ -5,7 +5,11 @@ import com.prototype.smartlayout.model.enums.ComponentTypeEnum;
 
 @SuppressWarnings("unused")
 public enum ComponentDictionary {
+	// TODO : Make a language that parses a string such as
+	// L = {{c[1], c[2]},{c[2], c[3], c[1]}} where c[1] = ComponentDictionary.get(1);
+	// L = H{V{c[1], c[2]},{c[2], c[3], c[1]}} - Vertical and Horizontal forced cases may appear.
 
+	// ComponentSizeEnum can be programmatically get and multiplier such as Tall multiplies maxHeight by 2 and minHeight by 1.2
 	TEST_BOX_SMALL_100x100_200x200(ComponentTypeEnum.TEXT_AREA, ComponentSizeEnum.SMALL, 100, 100, 200, 200),
 	TEST_BOX_SMALL_200x200_200x200(ComponentTypeEnum.TEXT_AREA, ComponentSizeEnum.SMALL, 200, 200, 200, 200),
 	TEST_BOX_MEDIUM_100x100_400x400(ComponentTypeEnum.TEXT_AREA, ComponentSizeEnum.MEDIUM, 100, 100, 400, 400),

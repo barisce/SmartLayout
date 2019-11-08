@@ -52,7 +52,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	private JComboBox comboBox;
 	private List<Color> colorList = new ArrayList<>();
 	private Layoutable root;
-	private BasicStroke correctnessStroke = new BasicStroke(4);
+	private BasicStroke correctnessStroke = new BasicStroke(2);
 	private BufferedImage buffer;
 	private Graphics bufferGraphics;
 	private Vector<WidthHeightRange> finalLayoutCases;
@@ -157,7 +157,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	private void run () {
 		log.debug("Starting test...");
 		// give the test number that you want to execute
-		root = TestCaseUtils.executeTest(5);
+		root = TestCaseUtils.executeTest(6);
 
 		for (LayoutComponent ignored : TestCaseUtils.components) {
 			colorList.add(new Color(100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100)));
@@ -215,6 +215,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			int minHeight = c.getWidthHeightRange().getMinHeight();
 			int maxHeight = c.getWidthHeightRange().getMaxHeight();
 
+			// TODO instead of fillRect use images and print them to the UI
 			bufferGraphics.setColor(colorList.get(i));
 			bufferGraphics.fillRect(x, y, w, h);
 
@@ -226,7 +227,8 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			Graphics2D g2 = (Graphics2D) bufferGraphics;
 			Stroke oldStroke = g2.getStroke();
 			g2.setStroke(correctnessStroke);
-			g2.drawRect(x, y, w, h);
+			//TODO : Draw infeasible lines not rectangle
+			g2.drawRect(x+1, y+1, w-2, h-2);
 			g2.setStroke(oldStroke);
 
 
@@ -243,7 +245,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			bufferGraphics.drawString("" + maxHeight, x + w - 30, y + h / 2 + 25);
 			// Draw the leaf node name
 			bufferGraphics.setColor(TRANSPARENT_BLACK);
-			bufferGraphics.setFont(new Font("Arial", Font.PLAIN, ((w / 2) + (h / 2)) / 3));
+//			bufferGraphics.setFont(new Font("Arial", Font.PLAIN, ((w / 2) + (h / 2)) / 3));
 			bufferGraphics.drawString(c.getLabel(), x + w / 2 - (h / 2) / 6, y + h / 2 + (w / 2) / 6);
 		}
 		repaint();

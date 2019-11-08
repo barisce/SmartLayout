@@ -259,7 +259,7 @@ public class LayoutContainer implements Layoutable {
 			// Balance min
 //			strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), (w > statWidth.getMin() ? statWidth.getMin() : w), (h > statHeight.getMin() ? statHeight.getMin() : h), isHorizontal(whr) ? minWidthValues : minHeightValues);
 			// Balance max
-			strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), (w > statWidth.getMax() ? statWidth.getMax() : w), (h > statHeight.getMax() ? statHeight.getMax() : h), isHorizontal(whr) ? maxWidthValues : maxHeightValues);
+			strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 		} else {
 			log.debug("Shouldn't be here - Probably infeasible layout.");
 		}
@@ -296,16 +296,29 @@ public class LayoutContainer implements Layoutable {
 		}
 	}
 
-	private void strategyBalance (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] values) {
-		int length = values.length;
+	private void strategyBalance (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] minValues, int[] capacityValues) {
+		int length = capacityValues.length;
 		int cum = 0;
 		int[] distribution = new int[subRanges.size()];
 		boolean[] removedIndex = new boolean[subRanges.size()];
 		int remaining = WidthHeightRangeEnum.HORIZONTAL.equals(orientationStrategy) ? w : h;
+		for (int i = 0; i < subRanges.size(); i++) {
+			distribution[i] = minValues[i];
+			remaining -= minValues[i];
+			capacityValues[i] -= minValues[i];
+			if (capacityValues[i] <= 0) {
+				// this node is distributed properly
+				length--;
+				removedIndex[i] = true;
+			}
+		}
+		// TODO new strategy not balanced but favor minimums.
+		//  100-200 150-200 200-600 -> 100,150,200 -> 150,150,200 -> 200,200,200 -> 200,200,400
+
 		//while it can still be distributed, distribute
 		while (remaining > 0) {
 			// get the smallest number after 0 since 0 means that node is distributed.
-			IntSummaryStatistics stats = Arrays.stream(values).filter(num -> num>0).summaryStatistics();
+			IntSummaryStatistics stats = Arrays.stream(capacityValues).filter(num -> num>0).summaryStatistics();
 			// if total remaining over number of children less than minimum value a child can get, distribute this value instead of minimum value
 			if (remaining / length <= stats.getMin()) {
 				// if there is still something left to distribute in this node
@@ -313,15 +326,15 @@ public class LayoutContainer implements Layoutable {
 				for (int i = 0; i < subRanges.size(); i++) {
 					if (!removedIndex[i]) {
 						// distribute and subtract the amount from remaining
-						if (remainingOverLength == 0) {
+						if (remainingOverLength == 0) { // TODO : remaining <= length - add one by one
 							distribution[i] += remaining;
 							remaining = 0; break;
 						} else {
 							distribution[i] += remainingOverLength;
 							remaining -= remainingOverLength;
 							// also subtract from values to notify
-							values[i] -= remainingOverLength;
-							if (values[i] <= 0) {
+							capacityValues[i] -= remainingOverLength;
+							if (capacityValues[i] <= 0) {
 								// this node is distributed properly
 								length--;
 								removedIndex[i] = true;
@@ -341,8 +354,8 @@ public class LayoutContainer implements Layoutable {
 							distribution[i] += stats.getMin();
 							remaining -= stats.getMin();
 							// also subtract from values to notify
-							values[i] -= stats.getMin();
-							if (values[i] <= 0) {
+							capacityValues[i] -= stats.getMin();
+							if (capacityValues[i] <= 0) {
 								// this node is distributed properly
 								length--;
 								removedIndex[i] = true;
@@ -364,7 +377,7 @@ public class LayoutContainer implements Layoutable {
 
 		for (int i = 0; i < removedIndex.length; i++) {
 			if (!removedIndex[i]){
-				log.error("LayoutContainer with id: " + id + " is infeasible"); break;
+				log.error("LayoutContainer with id: " + id + " is not a tight fit."); break; // not tight fit
 			}
 		}
 

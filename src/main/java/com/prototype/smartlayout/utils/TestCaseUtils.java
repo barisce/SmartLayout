@@ -32,7 +32,7 @@ public class TestCaseUtils {
 	 * @return The component to be created.
 	 */
 	public static LayoutComponent createComponentFromDictionary (String label, ComponentDictionary item) {
-		LayoutComponent c = new LayoutComponent(label, new WidthHeightRange(WidthHeightRangeEnum.SINGLE, item.minWidth, item.maxWidth, item.minHeight, item.maxHeight));
+		LayoutComponent c = new LayoutComponent(item.toString(), new WidthHeightRange(WidthHeightRangeEnum.SINGLE, item.minWidth, item.maxWidth, item.minHeight, item.maxHeight));
 		components.add(c);
 		return c;
 	}

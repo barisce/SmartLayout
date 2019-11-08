@@ -8,7 +8,7 @@ public enum ComponentTypeEnum {
 	HEADING(3),
 	FOOTER(4),
 	TREE(5), // TODO: How to handle dynamic structures like Accordion or Tree,
-	ACCORDION(6),
+	ACCORDION(6), // give min 100 but max a lot like 1000
 	LIST(7),
 	FILE_CHOOSER(8),
 	FILE_DROP_AREA(9),
