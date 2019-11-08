@@ -46,6 +46,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	private static final Color TRANSPARENT_BLACK = new Color(0f, 0f, 0f, 0.4f);
 	private final JPanel panel;
 	private JCheckBox showOnlyFeasibleLayouts = new JCheckBox("");
+	private Vector<WidthHeightRange> feasibleLayouts = new Vector<>();
 	private JTextField txtnum1;
 	private JTextField txtnum2;
 	private JComboBox comboBox;
@@ -156,7 +157,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	private void run () {
 		log.debug("Starting test...");
 		// give the test number that you want to execute
-		root = TestCaseUtils.executeTest(4);
+		root = TestCaseUtils.executeTest(5);
 
 		for (LayoutComponent ignored : TestCaseUtils.components) {
 			colorList.add(new Color(100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100)));
@@ -175,7 +176,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		}
 		setResizeOnRoot();
 		getFinalLayoutCases();
-		this.root.layout(0, 0, root.getAssignedWidth() > 0 ? root.getAssignedWidth() : 0, root.getAssignedHeight() > 0 ? root.getAssignedHeight() : 0, getFeasibleLayout(finalLayoutCases));
+		this.root.layout(0, 0, root.getAssignedWidth() > 0 ? root.getAssignedWidth() : 0, root.getAssignedHeight() > 0 ? root.getAssignedHeight() : 0, getFeasibleLayout(feasibleLayouts));
 		log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
 
 		panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
@@ -262,10 +263,12 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		((LayoutContainer) root).clearMemoization();
 		finalLayoutCases = root.getRanges();
 		comboBox.removeAllItems();
+		feasibleLayouts = new Vector<>();
 		for (WidthHeightRange finalLayoutCase : finalLayoutCases) {
 			// If the checkbox is selected, then add if and only if layout's minimum requirements are satisfied.
 			if (!showOnlyFeasibleLayouts.isSelected() || isLayoutFeasible(root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCase)) {
 				comboBox.addItem(finalLayoutCase);
+				feasibleLayouts.add(finalLayoutCase);
 			}
 		}
 	}
@@ -285,7 +288,6 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		// Start with max values since we try to find minimum values
 		double minDiff = Integer.MAX_VALUE;
 		WidthHeightRange bestFit = null;
-		// TODO : Fizibiliteye bakilacak.
 		for (WidthHeightRange range : layouts) {
 			// Find closest pair of points according to root point.
 			double minsDist = Math.sqrt(Math.pow(root.getAssignedWidth() - range.getMinWidth(), 2) + Math.pow(root.getAssignedHeight() - range.getMinHeight(), 2));
