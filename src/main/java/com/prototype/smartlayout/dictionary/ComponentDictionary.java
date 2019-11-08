@@ -7,8 +7,11 @@ import com.prototype.smartlayout.model.enums.ComponentTypeEnum;
 public enum ComponentDictionary {
 
 	TEST_BOX_SMALL_100x100_200x200(ComponentTypeEnum.TEXT_AREA, ComponentSizeEnum.SMALL, 100, 100, 200, 200),
+	TEST_BOX_SMALL_200x200_200x200(ComponentTypeEnum.TEXT_AREA, ComponentSizeEnum.SMALL, 200, 200, 200, 200),
 	TEST_BOX_MEDIUM_100x100_400x400(ComponentTypeEnum.TEXT_AREA, ComponentSizeEnum.MEDIUM, 100, 100, 400, 400),
+	TEST_BOX_MEDIUM_200x200_400x400(ComponentTypeEnum.TEXT_AREA, ComponentSizeEnum.MEDIUM, 200, 200, 400, 400),
 	TEST_BOX_LARGE_100x100_600x600(ComponentTypeEnum.TEXT_AREA, ComponentSizeEnum.LARGE, 100, 100, 600, 600),
+	TEST_BOX_LARGE_200x200_600x600(ComponentTypeEnum.TEXT_AREA, ComponentSizeEnum.LARGE, 200, 200, 600, 600),
 	TEST_BOX_WIDE_100x100_600x200(ComponentTypeEnum.TEXT_AREA, ComponentSizeEnum.WIDE, 100, 100, 600, 200),
 	TEST_BOX_TALL_100x100_200x600(ComponentTypeEnum.TEXT_AREA, ComponentSizeEnum.TALL, 100, 100, 200, 600),
 

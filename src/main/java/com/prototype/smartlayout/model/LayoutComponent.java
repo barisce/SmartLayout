@@ -77,8 +77,24 @@ public class LayoutComponent implements Layoutable {
 		// This is the main method that does the computation of layout
 		setAssignedX(x);
 		setAssignedY(y);
+//		if (w < whr.getMinWidth()) {
+//			setAssignedWidth(whr.getMinWidth());
+//		} else if (w > whr.getMaxWidth()) {
+//			setAssignedWidth(whr.getMaxWidth());
+//		} else {
+//			setAssignedWidth(w);
+//		}
+//		if (h < whr.getMinHeight()) {
+//			setAssignedHeight(whr.getMinHeight());
+//		} else if (h > whr.getMaxHeight()) {
+//			setAssignedHeight(whr.getMaxHeight());
+//		} else {
+//			setAssignedHeight(h);
+//		}
+
 		setAssignedWidth(w);
 		setAssignedHeight(h);
+
 		setFeasible(w >= whr.getMinWidth() && w <= whr.getMaxWidth() && h >= whr.getMinHeight() && h <= whr.getMaxHeight());
 //		log.debug(label + " - X: " + x + " Y: "+ y + " Width: " + w + " Height: " + h);
 		return isFeasible;

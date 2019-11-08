@@ -53,6 +53,8 @@ public class TestCaseUtils {
 				return dictionaryTestCase1();
 			case 5:
 				return dictionaryTestCase2();
+			case 6:
+				return dictionaryTestCase3();
 			case 1:
 			default:
 				return testCase1();
@@ -332,6 +334,55 @@ public class TestCaseUtils {
 		LayoutComponent compH = createComponentFromDictionary("H", ComponentDictionary.TEST_BOX_MEDIUM_100x100_400x400);
 		LayoutComponent compI = createComponentFromDictionary("I", ComponentDictionary.TEST_BOX_LARGE_100x100_600x600);
 		LayoutComponent compJ = createComponentFromDictionary("J", ComponentDictionary.TEST_BOX_LARGE_100x100_600x600);
+		LayoutComponent compK = createComponentFromDictionary("K", ComponentDictionary.TEST_BOX_SMALL_100x100_200x200);
+		LayoutComponent compL = createComponentFromDictionary("L", ComponentDictionary.TEST_BOX_SMALL_100x100_200x200);
+
+		LayoutContainer contY = new LayoutContainer("Y");
+		contY.addComponent(compE);
+		contY.addComponent(compF);
+
+		LayoutContainer contT = new LayoutContainer("T");
+		contT.addComponent(compK);
+		contT.addComponent(compL);
+
+		LayoutContainer contR = new LayoutContainer("R");
+		contR.addComponent(contT);
+		contR.addComponent(compJ);
+
+		LayoutContainer contN = new LayoutContainer("N");
+		contN.addComponent(compG);
+		contN.addComponent(compH);
+		contN.addComponent(compI);
+
+		LayoutContainer contZ = new LayoutContainer("Z");
+		contZ.addComponent(contY);
+		contZ.addComponent(contR);
+		contZ.addComponent(contN);
+
+		LayoutContainer contX = new LayoutContainer("X");
+		contX.addComponent(compA);
+		contX.addComponent(compB);
+		contX.addComponent(compC);
+
+		LayoutContainer contM = new LayoutContainer("M");
+		contM.addComponent(contZ);
+		contM.addComponent(contX);
+		contM.addComponent(compD);
+
+		return contM;
+	}
+
+	private static LayoutContainer dictionaryTestCase3 () {
+		LayoutComponent compA = createComponentFromDictionary("A", ComponentDictionary.TEST_BOX_SMALL_100x100_200x200);
+		LayoutComponent compB = createComponentFromDictionary("B", ComponentDictionary.TEST_BOX_MEDIUM_200x200_400x400);
+		LayoutComponent compC = createComponentFromDictionary("C", ComponentDictionary.TEST_BOX_MEDIUM_100x100_400x400);
+		LayoutComponent compD = createComponentFromDictionary("D", ComponentDictionary.TEST_BOX_LARGE_100x100_600x600);
+		LayoutComponent compE = createComponentFromDictionary("E", ComponentDictionary.TEST_BOX_TALL_100x100_200x600);
+		LayoutComponent compF = createComponentFromDictionary("F", ComponentDictionary.TEST_BOX_TALL_100x100_200x600);
+		LayoutComponent compG = createComponentFromDictionary("G", ComponentDictionary.TEST_BOX_WIDE_100x100_600x200);
+		LayoutComponent compH = createComponentFromDictionary("H", ComponentDictionary.TEST_BOX_MEDIUM_100x100_400x400);
+		LayoutComponent compI = createComponentFromDictionary("I", ComponentDictionary.TEST_BOX_LARGE_200x200_600x600);
+		LayoutComponent compJ = createComponentFromDictionary("J", ComponentDictionary.TEST_BOX_LARGE_200x200_600x600);
 		LayoutComponent compK = createComponentFromDictionary("K", ComponentDictionary.TEST_BOX_SMALL_100x100_200x200);
 		LayoutComponent compL = createComponentFromDictionary("L", ComponentDictionary.TEST_BOX_SMALL_100x100_200x200);
 

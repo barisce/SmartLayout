@@ -90,7 +90,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 					for (WidthHeightRange finalLayoutCase : finalLayoutCases) {
 						if (finalLayoutCase.toString().equals(comboBox.getSelectedItem().toString())) {
 							root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCase);
-							log.debug(finalLayoutCases.get(comboBox.getSelectedIndex()));
+							log.debug(finalLayoutCase);
 							drawLayout();
 						}
 					}
@@ -156,7 +156,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	private void run () {
 		log.debug("Starting test...");
 		// give the test number that you want to execute
-		root = TestCaseUtils.executeTest(5);
+		root = TestCaseUtils.executeTest(4);
 
 		for (LayoutComponent ignored : TestCaseUtils.components) {
 			colorList.add(new Color(100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100)));

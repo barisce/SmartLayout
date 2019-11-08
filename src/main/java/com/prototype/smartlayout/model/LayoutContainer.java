@@ -309,33 +309,44 @@ public class LayoutContainer implements Layoutable {
 			// if total remaining over number of children less than minimum value a child can get, distribute this value instead of minimum value
 			if (remaining / length <= stats.getMin()) {
 				// if there is still something left to distribute in this node
+				int remainingOverLength = remaining / length;
 				for (int i = 0; i < subRanges.size(); i++) {
 					if (!removedIndex[i]) {
 						// distribute and subtract the amount from remaining
-						distribution[i] += remaining / length;
-						remaining -= remaining / length;
-						// also subtract from values to notify
-						values[i] -= stats.getMin();
-						if (values[i] <= 0) {
-							// this node is distributed properly
-							length--;
-							removedIndex[i] = true;
+						if (remainingOverLength == 0) {
+							distribution[i] += remaining;
+							remaining = 0; break;
+						} else {
+							distribution[i] += remainingOverLength;
+							remaining -= remainingOverLength;
+							// also subtract from values to notify
+							values[i] -= remainingOverLength;
+							if (values[i] <= 0) {
+								// this node is distributed properly
+								length--;
+								removedIndex[i] = true;
+							}
 						}
 					}
 				}
 			} else {
+				int remainingOverLength = remaining / length;
 				for (int i = 0; i < subRanges.size(); i++) {
-					// if there is still something left to distribute in this node
 					if (!removedIndex[i]) {
 						// distribute and subtract the amount from remaining
-						distribution[i] += stats.getMin();
-						remaining -= stats.getMin();
-						// also subtract from values to notify
-						values[i] -= stats.getMin();
-						if (values[i] <= 0) {
-							// this node is distributed properly
-							length--;
-							removedIndex[i] = true;
+						if (remainingOverLength == 0) {
+							distribution[i] += remaining;
+							remaining = 0;
+						} else {
+							distribution[i] += stats.getMin();
+							remaining -= stats.getMin();
+							// also subtract from values to notify
+							values[i] -= stats.getMin();
+							if (values[i] <= 0) {
+								// this node is distributed properly
+								length--;
+								removedIndex[i] = true;
+							}
 						}
 					}
 				}
@@ -348,6 +359,12 @@ public class LayoutContainer implements Layoutable {
 			}
 			if (length <= 0) {
 //				log.error("All is distributed. Remaining: " + remaining);
+			}
+		}
+
+		for (int i = 0; i < removedIndex.length; i++) {
+			if (!removedIndex[i]){
+				log.error("LayoutContainer with id: " + id + " is infeasible"); break;
 			}
 		}
 
