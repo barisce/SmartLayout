@@ -68,7 +68,7 @@ public class WidthHeightRange {
 	private String getOrientationTreeString () {
 		StringBuilder builder = new StringBuilder("<");
 		builder.append(getOrientationStrategyString());
-		if (subRanges.size() > 0) {
+		if (!subRanges.isEmpty()) {
 			for (WidthHeightRange whr : subRanges) {
 				builder.append(whr.getOrientationTreeString());
 			}

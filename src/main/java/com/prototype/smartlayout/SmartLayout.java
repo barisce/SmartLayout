@@ -292,8 +292,8 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		WidthHeightRange bestFit = null;
 		for (WidthHeightRange range : layouts) {
 			// Find closest pair of points according to root point.
-			double minsDist = Math.sqrt(Math.pow(root.getAssignedWidth() - range.getMinWidth(), 2) + Math.pow(root.getAssignedHeight() - range.getMinHeight(), 2));
-			double maxsDist = Math.sqrt(Math.pow(root.getAssignedWidth() - range.getMaxWidth(), 2) + Math.pow(root.getAssignedHeight() - range.getMaxHeight(), 2));
+			double minsDist = Math.sqrt(Math.pow((double)root.getAssignedWidth() - range.getMinWidth(), 2) + Math.pow((double)root.getAssignedHeight() - range.getMinHeight(), 2));
+			double maxsDist = Math.sqrt(Math.pow((double)root.getAssignedWidth() - range.getMaxWidth(), 2) + Math.pow((double)root.getAssignedHeight() - range.getMaxHeight(), 2));
 			// if both min and max values of possible layouts are less than our current distance set the new values
 			if (Math.max(minsDist, maxsDist) < minDiff) {
 				minDiff = Math.max(minsDist, maxsDist);
