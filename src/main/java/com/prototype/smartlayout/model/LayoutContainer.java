@@ -2,13 +2,15 @@ package com.prototype.smartlayout.model;
 
 import com.prototype.smartlayout.model.enums.WidthHeightRangeEnum;
 import com.prototype.smartlayout.utils.ArrayUtils;
+import com.prototype.smartlayout.utils.LayoutContainerUtils;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.IntSummaryStatistics;
+import java.util.Vector;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
-
-import java.util.Arrays;
-import java.util.IntSummaryStatistics;
-import java.util.Vector;
 
 @Getter
 @Setter
@@ -261,7 +263,9 @@ public class LayoutContainer implements Layoutable {
 			// Balance min
 //			strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues);
 			// Balance max
-			strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
+//			strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
+
+			strategyFavorMinimum(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 		} else {
 			log.debug("Shouldn't be here - Probably infeasible layout.");
 		}
@@ -287,28 +291,21 @@ public class LayoutContainer implements Layoutable {
 	 */
 	private void strategyValues (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] values) {
 		int cum = 0;
-		for (int i = 0; i < subRanges.size(); i++) {
-			// Resize the component to fit the window
-			if (WidthHeightRangeEnum.HORIZONTAL.equals(orientationStrategy)) {
-				children.get(i).layout(x + cum, y, values[i], h, subRanges.get(i));
-			} else {
-				children.get(i).layout(x, y + cum, w, values[i], subRanges.get(i));
-			}
-			cum += values[i];
-		}
+		layoutRecursively(x, y, subRanges, orientationStrategy, w, h, cum, values);
 	}
 
-    /**
-     * This method shares remaining values as the minimum of the components.
-     * @param x
-     * @param y
-     * @param subRanges
-     * @param orientationStrategy
-     * @param w
-     * @param h
-     * @param minValues
-     * @param capacityValues
-     */
+	/**
+	 * This method shares remaining values as the minimum of the components.
+	 *
+	 * @param x
+	 * @param y
+	 * @param subRanges
+	 * @param orientationStrategy
+	 * @param w
+	 * @param h
+	 * @param minValues
+	 * @param capacityValues
+	 */
 	private void strategyBalance (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] minValues, int[] capacityValues) {
 		int length = capacityValues.length;
 		int cum = 0;
@@ -319,10 +316,9 @@ public class LayoutContainer implements Layoutable {
 			distribution[i] = minValues[i];
 			remaining -= minValues[i];
 			capacityValues[i] -= minValues[i];
-			if (capacityValues[i] <= 0) {
-				// this node is distributed properly
-				length--;
-				removedIndex[i] = true;
+			length = LayoutContainerUtils.checkDistributionComplete(length, removedIndex, i, capacityValues[i]);
+			if (remaining <= 0) {
+				break;
 			}
 		}
 		// TODO new strategy not balanced but favor minimums.
@@ -331,7 +327,7 @@ public class LayoutContainer implements Layoutable {
 		//while it can still be distributed, distribute
 		while (remaining > 0) {
 			// get the smallest number after 0 since 0 means that node is distributed.
-			IntSummaryStatistics stats = Arrays.stream(capacityValues).filter(num -> num>0).summaryStatistics();
+			IntSummaryStatistics stats = Arrays.stream(capacityValues).filter(num -> num > 0).summaryStatistics();
 			// if total remaining over number of children less than minimum value a child can get, distribute this value instead of minimum value
 			if (remaining / length <= stats.getMin()) {
 				// if there is still something left to distribute in this node
@@ -341,17 +337,11 @@ public class LayoutContainer implements Layoutable {
 						// distribute and subtract the amount from remaining
 						if (remainingOverLength == 0) { // TODO : remaining <= length - add one by one
 							distribution[i] += remaining;
-							remaining = 0; break;
+							remaining = 0;
+							break;
 						} else {
-							distribution[i] += remainingOverLength;
-							remaining -= remainingOverLength;
-							// also subtract from values to notify
-							capacityValues[i] -= remainingOverLength;
-							if (capacityValues[i] <= 0) {
-								// this node is distributed properly
-								length--;
-								removedIndex[i] = true;
-							}
+							remaining = LayoutContainerUtils.distribute(capacityValues, distribution, remaining, remainingOverLength, i);
+							length = LayoutContainerUtils.checkDistributionComplete(length, removedIndex, i, capacityValues[i]);
 						}
 					}
 				}
@@ -364,15 +354,8 @@ public class LayoutContainer implements Layoutable {
 							distribution[i] += remaining;
 							remaining = 0;
 						} else {
-							distribution[i] += stats.getMin();
-							remaining -= stats.getMin();
-							// also subtract from values to notify
-							capacityValues[i] -= stats.getMin();
-							if (capacityValues[i] <= 0) {
-								// this node is distributed properly
-								length--;
-								removedIndex[i] = true;
-							}
+							remaining = LayoutContainerUtils.distribute(capacityValues, distribution, remaining, stats.getMin(), i);
+							length = LayoutContainerUtils.checkDistributionComplete(length, removedIndex, i, capacityValues[i]);
 						}
 					}
 				}
@@ -388,12 +371,81 @@ public class LayoutContainer implements Layoutable {
 			}
 		}
 
-		for (int i = 0; i < removedIndex.length; i++) {
-			if (!removedIndex[i]){
-				log.error("LayoutContainer with id: " + id + " is not a tight fit."); break; // not tight fit
+		LayoutContainerUtils.checkForDistributionCompletedSuccessfully(removedIndex, id);
+
+		layoutRecursively(x, y, subRanges, orientationStrategy, w, h, cum, distribution);
+	}
+
+	private void strategyFavorMinimum (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] minValues, int[] capacityValues) {
+		int length = capacityValues.length;
+		int cum = 0;
+		int[] distribution = new int[subRanges.size()];
+		boolean[] removedIndex = new boolean[subRanges.size()];
+		int remaining = WidthHeightRangeEnum.HORIZONTAL.equals(orientationStrategy) ? w : h;
+//		for (int i = 0; i < subRanges.size(); i++) {
+//			if (remaining / length < minValues[i]) {
+//
+//			}
+//			distribution[i] = minValues[i];
+//			remaining -= minValues[i];
+//			capacityValues[i] -= minValues[i];
+//			length = LayoutContainerUtils.checkDistributionComplete(length, removedIndex, i, capacityValues[i]);
+//			if (remaining <= 0) {
+//				break;
+//			}
+//		}
+		// TODO new strategy not balanced but favor minimums.
+		//  100-200 150-200 200-600 -> 100,150,200 -> 150,150,200 -> 200,200,200 -> 200,200,400
+
+		//while it can still be distributed, distribute
+		while (remaining > 0) {
+			// get the smallest number after 0 since 0 means that node is distributed.
+			int[] lastTwoSmallest = ArrayUtils.getLastTwoUniqueSmallestValuesInArray(capacityValues);
+			if (lastTwoSmallest.length < 2 || lastTwoSmallest[0] == lastTwoSmallest[1]) {
+				// Distribute equally between remaining nodes
+				int amount = remaining / lastTwoSmallest.length;
+				for (int i = 0; i < capacityValues.length; i++) {
+					if (!removedIndex[i]) {
+						remaining = LayoutContainerUtils.distribute(capacityValues, distribution, remaining, amount, i);
+						length = LayoutContainerUtils.checkDistributionComplete(length, removedIndex, i, capacityValues[i]);
+						if (remaining <= 0) {
+							break;
+						}
+					}
+				}
+			} else {
+				int diff = Math.abs(lastTwoSmallest[1] - lastTwoSmallest[0]);
+				int remainingSharedAmongstMinimums = remaining / Collections.frequency(Arrays.stream(capacityValues)
+						.boxed()
+						.collect(Collectors.toList()), lastTwoSmallest[0]);
+
+				for (int i = 0; i < capacityValues.length; i++) {
+					if (!removedIndex[i] && capacityValues[i] < lastTwoSmallest[1]) {
+						int amount = remainingSharedAmongstMinimums < diff ? remainingSharedAmongstMinimums : diff;
+						remaining = LayoutContainerUtils.distribute(capacityValues, distribution, remaining, amount, i);
+						length = LayoutContainerUtils.checkDistributionComplete(length, removedIndex, i, capacityValues[i]);
+						if (remaining <= 0) {
+							break;
+						}
+					}
+				}
+			}
+
+			if (remaining < 0) {
+				log.error("Remaining can't be negative!");
+				break;
+			}
+			if (length <= 0) {
+				// log.error("All is distributed. Remaining: " + remaining);
 			}
 		}
 
+		LayoutContainerUtils.checkForDistributionCompletedSuccessfully(removedIndex, id);
+
+		layoutRecursively(x, y, subRanges, orientationStrategy, w, h, cum, distribution);
+	}
+
+	private void layoutRecursively (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int cum, int[] distribution) {
 		for (int i = 0; i < subRanges.size(); i++) {
 			// Resize the component to fit the window
 			if (WidthHeightRangeEnum.HORIZONTAL.equals(orientationStrategy)) {
@@ -403,114 +455,6 @@ public class LayoutContainer implements Layoutable {
 			}
 			cum += distribution[i];
 		}
-	}
-
-    private void strategyFavorMinimum (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] minValues, int[] capacityValues) {
-        int length = capacityValues.length;
-        int cum = 0;
-        int[] distribution = new int[subRanges.size()];
-        boolean[] removedIndex = new boolean[subRanges.size()];
-        int remaining = WidthHeightRangeEnum.HORIZONTAL.equals(orientationStrategy) ? w : h;
-        for (int i = 0; i < subRanges.size(); i++) {
-            distribution[i] = minValues[i];
-            remaining -= minValues[i];
-            capacityValues[i] -= minValues[i];
-            if (capacityValues[i] <= 0) {
-                // this node is distributed properly
-                length--;
-                removedIndex[i] = true;
-            }
-        }
-        // TODO new strategy not balanced but favor minimums.
-        //  100-200 150-200 200-600 -> 100,150,200 -> 150,150,200 -> 200,200,200 -> 200,200,400
-
-        //while it can still be distributed, distribute
-        while (remaining > 0) {
-            // get the smallest number after 0 since 0 means that node is distributed.
-            int[] lastTwoSmallest = ArrayUtils.getLastTwoUniqueSmallestValuesInArray(capacityValues);
-            IntSummaryStatistics stats = Arrays.stream(capacityValues).filter(num -> num>0).summaryStatistics();
-            // if total remaining over number of children less than minimum value a child can get, distribute this value instead of minimum value
-            if (remaining / length <= stats.getMin()) {
-                // if there is still something left to distribute in this node
-                int remainingOverLength = remaining / length;
-                for (int i = 0; i < subRanges.size(); i++) {
-                    if (!removedIndex[i]) {
-                        // distribute and subtract the amount from remaining
-                        if (remainingOverLength == 0) { // TODO : remaining <= length - add one by one
-                            distribution[i] += remaining;
-                            remaining = 0; break;
-                        } else {
-                            distribution[i] += remainingOverLength;
-                            remaining -= remainingOverLength;
-                            // also subtract from values to notify
-                            capacityValues[i] -= remainingOverLength;
-                            if (capacityValues[i] <= 0) {
-                                // this node is distributed properly
-                                length--;
-                                removedIndex[i] = true;
-                            }
-                        }
-                    }
-                }
-            } else {
-                int remainingOverLength = remaining / length;
-                for (int i = 0; i < subRanges.size(); i++) {
-                    if (!removedIndex[i]) {
-                        // distribute and subtract the amount from remaining
-                        if (remainingOverLength == 0) {
-                            distribution[i] += remaining;
-                            remaining = 0;
-                        } else {
-                            distribution[i] += stats.getMin();
-                            remaining -= stats.getMin();
-                            // also subtract from values to notify
-                            capacityValues[i] -= stats.getMin();
-                            if (capacityValues[i] <= 0) {
-                                // this node is distributed properly
-                                length--;
-                                removedIndex[i] = true;
-                            }
-                        }
-                    }
-                }
-            }
-            // TODO: Still not looking at height value if it looked width value,
-            // TODO: Still not looking at width value if it looked height value.
-            if (remaining < 0) {
-                log.error("Remaining can't be negative!");
-                break;
-            }
-            if (length <= 0) {
-//				log.error("All is distributed. Remaining: " + remaining);
-            }
-        }
-
-        for (int i = 0; i < removedIndex.length; i++) {
-            if (!removedIndex[i]){
-                log.error("LayoutContainer with id: " + id + " is not a tight fit."); break; // not tight fit
-            }
-        }
-
-        for (int i = 0; i < subRanges.size(); i++) {
-            // Resize the component to fit the window
-            if (WidthHeightRangeEnum.HORIZONTAL.equals(orientationStrategy)) {
-                children.get(i).layout(x + cum, y, distribution[i], h, subRanges.get(i));
-            } else {
-                children.get(i).layout(x, y + cum, w, distribution[i], subRanges.get(i));
-            }
-            cum += distribution[i];
-        }
-    }
-
-    private int[] removeElement(int[] intArr, int i) {
-		int[] newArr = new int[intArr.length - 1];
-		for(int index = 0; index < i; index++){
-			newArr[index] = intArr[index];
-		}
-		for(int j = i; j < intArr.length - 1; j++){
-			newArr[j] = intArr[j+1];
-		}
-		return newArr;
 	}
 
 	/**
