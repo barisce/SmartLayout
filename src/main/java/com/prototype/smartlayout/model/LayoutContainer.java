@@ -1,13 +1,11 @@
 package com.prototype.smartlayout.model;
 
 import com.prototype.smartlayout.model.enums.WidthHeightRangeEnum;
-import com.prototype.smartlayout.utils.ArrayUtils;
+import com.prototype.smartlayout.utils.ArrayIndexComparator;
 import com.prototype.smartlayout.utils.LayoutContainerUtils;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.IntSummaryStatistics;
 import java.util.Vector;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
@@ -218,6 +216,9 @@ public class LayoutContainer implements Layoutable {
 
 	@Override
 	public boolean layout (int x, int y, int w, int h, WidthHeightRange whr) {
+		if (whr.getMinHeight() > h && whr.getMaxHeight() < h && whr.getMinWidth() > w && whr.getMaxWidth() < w) {
+			return false;
+		}
 		// This is the main method that does the computation of layout
 		setAssignedX(x);
 		setAssignedY(y);
@@ -246,32 +247,33 @@ public class LayoutContainer implements Layoutable {
 		}
 
 
+		boolean feasible = false;
 		if (whr.getOrientationStrategy() == WidthHeightRangeEnum.HORIZONTAL || whr.getOrientationStrategy() == WidthHeightRangeEnum.VERTICAL) {
 			// Weight strategy by max values
-//			strategyWeight(x, y, isHorizontal(whr) ? totalMaxWidthOfChildren : totalMaxHeightOfChildren, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
+//			feasible = strategyWeight(x, y, isHorizontal(whr) ? totalMaxWidthOfChildren : totalMaxHeightOfChildren, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 			// Weight strategy by min values
-//			strategyWeight(x, y, isHorizontal(whr) ? totalMinWidthOfChildren : totalMinHeightOfChildren, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues);
+//			feasible = strategyWeight(x, y, isHorizontal(whr) ? totalMinWidthOfChildren : totalMinHeightOfChildren, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues);
 
 //			// this stream gets the statistics of the int array so we can find minimum or maximum values of this array.
 			IntSummaryStatistics statWidth = Arrays.stream(maxWidthValues).summaryStatistics();
 			IntSummaryStatistics statHeight = Arrays.stream(maxHeightValues).summaryStatistics();
 //			// Max values strategy
-//			strategyValues(x, y, subRanges, whr.getOrientationStrategy(), (w > statWidth.getMin() ? statWidth.getMin() : w), (h > statHeight.getMin() ? statHeight.getMin() : h), isHorizontal(whr) ? maxWidthValues : maxHeightValues);
+//			feasible = strategyValues(x, y, subRanges, whr.getOrientationStrategy(), (w > statWidth.getMin() ? statWidth.getMin() : w), (h > statHeight.getMin() ? statHeight.getMin() : h), isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 //			// Min values strategy
-//			strategyValues(x, y, subRanges, whr.getOrientationStrategy(), (w > statWidth.getMin() ? statWidth.getMin() : w), (h > statHeight.getMin() ? statHeight.getMin() : h), isHorizontal(whr) ? minWidthValues : minHeightValues);
+//			feasible = strategyValues(x, y, subRanges, whr.getOrientationStrategy(), (w > statWidth.getMin() ? statWidth.getMin() : w), (h > statHeight.getMin() ? statHeight.getMin() : h), isHorizontal(whr) ? minWidthValues : minHeightValues);
 
 			// Balance min
-//			strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues);
+//			feasible = strategyFair(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues);
 			// Balance max
-//			strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
+//			feasible = strategyFair(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 
-			strategyFavorMinimum(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
+			feasible = strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 		} else {
 			log.debug("Shouldn't be here - Probably infeasible layout.");
 		}
 
 		// Just check if the given boundaries match with given width & height.
-		return (w >= whr.getMinWidth() && w <= whr.getMaxWidth() && h >= whr.getMinHeight() && h <= whr.getMaxHeight());
+		return feasible;
 	}
 
 	private boolean isHorizontal (WidthHeightRange whr) {
@@ -289,9 +291,9 @@ public class LayoutContainer implements Layoutable {
 	 * @param h                   actual height value
 	 * @param values              values to consider while distributing weight ratio
 	 */
-	private void strategyValues (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] values) {
+	private boolean strategyValues (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] values) {
 		int cum = 0;
-		layoutRecursively(x, y, subRanges, orientationStrategy, w, h, cum, values);
+		return layoutRecursively(x, y, subRanges, orientationStrategy, w, h, cum, values);
 	}
 
 	/**
@@ -306,7 +308,7 @@ public class LayoutContainer implements Layoutable {
 	 * @param minValues
 	 * @param capacityValues
 	 */
-	private void strategyBalance (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] minValues, int[] capacityValues) {
+	private boolean strategyFair (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] minValues, int[] capacityValues) {
 		int length = capacityValues.length;
 		int cum = 0;
 		int[] distribution = new int[subRanges.size()];
@@ -360,8 +362,6 @@ public class LayoutContainer implements Layoutable {
 					}
 				}
 			}
-			// TODO: Still not looking at height value if it looked width value,
-			// TODO: Still not looking at width value if it looked height value.
 			if (remaining < 0) {
 				log.error("Remaining can't be negative!");
 				break;
@@ -373,61 +373,52 @@ public class LayoutContainer implements Layoutable {
 
 		LayoutContainerUtils.checkForDistributionCompletedSuccessfully(removedIndex, id);
 
-		layoutRecursively(x, y, subRanges, orientationStrategy, w, h, cum, distribution);
+		return layoutRecursively(x, y, subRanges, orientationStrategy, w, h, cum, distribution);
 	}
 
-	private void strategyFavorMinimum (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] minValues, int[] capacityValues) {
-		int length = capacityValues.length;
+	private boolean strategyBalance (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] minValues, int[] capacityValues) {
 		int cum = 0;
+		int[] maxValues = new int[subRanges.size()];
 		int[] distribution = new int[subRanges.size()];
-		boolean[] removedIndex = new boolean[subRanges.size()];
 		int remaining = WidthHeightRangeEnum.HORIZONTAL.equals(orientationStrategy) ? w : h;
-//		for (int i = 0; i < subRanges.size(); i++) {
-//			if (remaining / length < minValues[i]) {
-//
-//			}
-//			distribution[i] = minValues[i];
-//			remaining -= minValues[i];
-//			capacityValues[i] -= minValues[i];
-//			length = LayoutContainerUtils.checkDistributionComplete(length, removedIndex, i, capacityValues[i]);
-//			if (remaining <= 0) {
-//				break;
-//			}
-//		}
-		// TODO new strategy not balanced but favor minimums.
-		//  100-200 150-200 200-600 -> 100,150,200 -> 150,150,200 -> 200,200,200 -> 200,200,400
+		for (int i = 0; i < subRanges.size(); i++) {
+			maxValues[i] = WidthHeightRangeEnum.HORIZONTAL.equals(orientationStrategy) ? subRanges.get(i).getMaxWidth() : subRanges.get(i).getMaxHeight();
+			distribution[i] = minValues[i];
+			remaining -= minValues[i];
+			capacityValues[i] -= minValues[i];
+			if (remaining <= 0) {
+				break;
+			}
+		}
+		// This creates the index array of distribution array and then sorts the distribution
+		// and returns as indexes so that we know the positions of sorted array and keep the original array.
+		ArrayIndexComparator comparator = new ArrayIndexComparator(distribution);
+		Integer[] indexOrder = comparator.createIndexArray();
+		Arrays.sort(indexOrder, comparator);
 
 		//while it can still be distributed, distribute
 		while (remaining > 0) {
-			// get the smallest number after 0 since 0 means that node is distributed.
-			int[] lastTwoSmallest = ArrayUtils.getLastTwoUniqueSmallestValuesInArray(capacityValues);
-			if (lastTwoSmallest.length < 2 || lastTwoSmallest[0] == lastTwoSmallest[1]) {
-				// Distribute equally between remaining nodes
-				int amount = remaining / lastTwoSmallest.length;
-				for (int i = 0; i < capacityValues.length; i++) {
-					if (!removedIndex[i]) {
-						remaining = LayoutContainerUtils.distribute(capacityValues, distribution, remaining, amount, i);
-						length = LayoutContainerUtils.checkDistributionComplete(length, removedIndex, i, capacityValues[i]);
-						if (remaining <= 0) {
-							break;
-						}
-					}
-				}
+			if (distribution[indexOrder[0]] == maxValues[indexOrder[0]]) {
+				// This slot is full, remove it from indexOrder
+				indexOrder = Arrays.copyOfRange(indexOrder, 1, indexOrder.length);
 			} else {
-				int diff = Math.abs(lastTwoSmallest[1] - lastTwoSmallest[0]);
-				int remainingSharedAmongstMinimums = remaining / Collections.frequency(Arrays.stream(capacityValues)
-						.boxed()
-						.collect(Collectors.toList()), lastTwoSmallest[0]);
-
-				for (int i = 0; i < capacityValues.length; i++) {
-					if (!removedIndex[i] && capacityValues[i] < lastTwoSmallest[1]) {
-						int amount = remainingSharedAmongstMinimums < diff ? remainingSharedAmongstMinimums : diff;
-						remaining = LayoutContainerUtils.distribute(capacityValues, distribution, remaining, amount, i);
-						length = LayoutContainerUtils.checkDistributionComplete(length, removedIndex, i, capacityValues[i]);
-						if (remaining <= 0) {
-							break;
-						}
-					}
+				// This slot can still be filled
+				// Increase by 1.
+				// Can we increase more? Maybe, but requires very smart computation
+				distribution[indexOrder[0]] = distribution[indexOrder[0]] + 1;
+				remaining--;
+				int p = 0;
+				int q = 1;
+				// Now we move this item up the list if this is not the smallest
+				// item anymore. This is basically one step of bubble sort
+				// takes O(n) in the worst case. But n is small here.
+				while (q < indexOrder.length && distribution[indexOrder[p]] > distribution[indexOrder[q]]) {
+					// swap indexOrder[p] with indexOrder[q] and increment pointers.
+					int temp = indexOrder[p];
+					indexOrder[p] = indexOrder[q];
+					indexOrder[q] = temp;
+					p = q;
+					q = p + 1;
 				}
 			}
 
@@ -435,26 +426,26 @@ public class LayoutContainer implements Layoutable {
 				log.error("Remaining can't be negative!");
 				break;
 			}
-			if (length <= 0) {
-				// log.error("All is distributed. Remaining: " + remaining);
-			}
 		}
 
-		LayoutContainerUtils.checkForDistributionCompletedSuccessfully(removedIndex, id);
-
-		layoutRecursively(x, y, subRanges, orientationStrategy, w, h, cum, distribution);
+		return layoutRecursively(x, y, subRanges, orientationStrategy, w, h, cum, distribution);
 	}
 
-	private void layoutRecursively (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int cum, int[] distribution) {
+	private boolean layoutRecursively (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int cum, int[] distribution) {
 		for (int i = 0; i < subRanges.size(); i++) {
 			// Resize the component to fit the window
 			if (WidthHeightRangeEnum.HORIZONTAL.equals(orientationStrategy)) {
-				children.get(i).layout(x + cum, y, distribution[i], h, subRanges.get(i));
+				if (!children.get(i).layout(x + cum, y, distribution[i], h, subRanges.get(i))) {
+					return false;
+				}
 			} else {
-				children.get(i).layout(x, y + cum, w, distribution[i], subRanges.get(i));
+				if (!children.get(i).layout(x, y + cum, w, distribution[i], subRanges.get(i))) {
+					return false;
+				}
 			}
 			cum += distribution[i];
 		}
+		return true;
 	}
 
 	/**
@@ -471,7 +462,7 @@ public class LayoutContainer implements Layoutable {
 	 * @param h                   actual height value
 	 * @param values              values to consider while distributing weight ratio
 	 */
-	private void strategyWeight (int x, int y, int totalOfChildren, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] values) {
+	private boolean strategyWeight (int x, int y, int totalOfChildren, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] values) {
 		int cum = 0;
 		// find the width ratio according to max values
 		float ratio = totalOfChildren / (WidthHeightRangeEnum.HORIZONTAL.equals(orientationStrategy) ? (float) w : (float) h);
@@ -479,13 +470,18 @@ public class LayoutContainer implements Layoutable {
 			// Resize the component to fit the window
 			int value = (int) Math.ceil(values[i] / ratio);
 			if (WidthHeightRangeEnum.HORIZONTAL.equals(orientationStrategy)) {
-				children.get(i).layout(x + cum, y, value, h, subRanges.get(i));
+				if (!children.get(i).layout(x + cum, y, value, h, subRanges.get(i))) {
+					return false;
+				}
 			} else {
-				children.get(i).layout(x, y + cum, w, value, subRanges.get(i));
+				if (!children.get(i).layout(x, y + cum, w, value, subRanges.get(i))) {
+					return false;
+				}
 			}
 			cum += value;
 			// TODO width height tan çıkara çıkara ilerlenebilir. Böylelikle 2-3 pixel artık kalmaz
 		}
+		return true;
 	}
 
 	public void addComponent (Layoutable comp) {
