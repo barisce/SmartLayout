@@ -34,8 +34,8 @@ public enum ComponentDictionary {
 	BUTTON_SMALL(ComponentTypeEnum.BUTTON, ComponentSizeEnum.SMALL, 20, 20, 80, 50),
 	BUTTON_MEDIUM(ComponentTypeEnum.BUTTON, ComponentSizeEnum.MEDIUM, 35, 35, 120, 80),
 	BUTTON_LARGE(ComponentTypeEnum.BUTTON, ComponentSizeEnum.LARGE, 50, 50, 150, 100),
-	BUTTON_WIDE(ComponentTypeEnum.BUTTON, ComponentSizeEnum.WIDE, 50, 20, 100, 50),
-	BUTTON_TALL(ComponentTypeEnum.BUTTON, ComponentSizeEnum.TALL, 20, 50, 50, 100),
+	BUTTON_WIDE(ComponentTypeEnum.BUTTON, ComponentSizeEnum.WIDE, 50, 20, 200, 50),
+	BUTTON_TALL(ComponentTypeEnum.BUTTON, ComponentSizeEnum.TALL, 20, 50, 50, 200),
 
 	TOGGLE_BUTTON_SMALL(ComponentTypeEnum.TOGGLE_BUTTON, ComponentSizeEnum.SMALL, 40, 20, 60, 30),
 	TOGGLE_BUTTON_MEDIUM(ComponentTypeEnum.TOGGLE_BUTTON, ComponentSizeEnum.MEDIUM, 55, 30, 85, 40),

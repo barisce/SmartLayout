@@ -5,6 +5,7 @@ import com.prototype.smartlayout.model.LayoutComponent;
 import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.Layoutable;
 import com.prototype.smartlayout.model.WidthHeightRange;
+import com.prototype.smartlayout.utils.MockUtils;
 import com.prototype.smartlayout.utils.TestCaseUtils;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
@@ -14,6 +15,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Stroke;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -25,11 +27,14 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -56,10 +61,11 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	private BufferedImage buffer;
 	private Graphics bufferGraphics;
 	private Vector<WidthHeightRange> finalLayoutCases;
+	private Map<String, JComponent> applicationComponentMap = new HashMap<>();
 
 	private SmartLayout () {
 		super();
-		TestCaseUtils.components = new Vector<>();
+		TestCaseUtils.components = new HashMap<>();
 		root = null;
 		finalLayoutCases = null;
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -67,7 +73,8 @@ public class SmartLayout extends JFrame implements ComponentListener {
 
 		JPanel outerPanel = new JPanel(new BorderLayout());
 		JPanel topPanel = new JPanel(new FlowLayout());
-		panel = new JPanel(new FlowLayout());
+		panel = new JPanel(null);
+		panel.setLayout(null);
 		panel.setSize(800, 600);
 		panel.addMouseListener(new CanvasMouseListener());
 		panel.addMouseWheelListener(new CanvasMouseListener());
@@ -93,6 +100,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 							root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCase);
 							log.debug(finalLayoutCase);
 							drawLayout();
+							resizeComponents();
 						}
 					}
 				}
@@ -127,9 +135,13 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 75);
 			log.debug(getFeasibleLayout(finalLayoutCases));
 			drawLayout();
+			resizeComponents();
 		});
 		topPanel.add(button);
 		outerPanel.add(panel, BorderLayout.CENTER);
+		// give the test number that you want to execute
+		root = TestCaseUtils.executeTest(7);
+		createComponentsOfTree();
 		outerPanel.add(topPanel, BorderLayout.PAGE_START);
 
 		buffer = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -156,12 +168,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	 */
 	private void run () {
 		log.debug("Starting test...");
-		// give the test number that you want to execute
-		root = TestCaseUtils.executeTest(6);
-
-		for (LayoutComponent ignored : TestCaseUtils.components) {
-			colorList.add(new Color(100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100)));
-		}
+		TestCaseUtils.components.forEach((key, ignored) -> colorList.add(new Color(100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100))));
 
 		((LayoutContainer) root).clearMemoization();
 		finalLayoutCases = root.getRanges();
@@ -183,6 +190,120 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		txtnum1.setText(root.getAssignedWidth() + "");
 		txtnum2.setText(root.getAssignedHeight() + "");
 		drawLayout();
+		resizeComponents();
+	}
+
+	private void resizeComponents () {
+		Insets insets = panel.getInsets();
+		applicationComponentMap.forEach((name, component) -> {
+			LayoutComponent layoutable = ((LayoutContainer) root).findComponent(name);
+			if (layoutable != null)
+				component.setBounds(layoutable.getAssignedX() + insets.left, layoutable.getAssignedY() + insets.top,
+						layoutable.getAssignedWidth(), layoutable.getAssignedHeight());
+		});
+	}
+
+	private void createComponentsOfTree () {
+		Insets insets = panel.getInsets();
+		TestCaseUtils.components.forEach((name, component) -> {
+			switch (component.getWidthHeightRange().getDict().type) {
+				case LABEL:
+					JLabel label = new JLabel(MockUtils.generateString((int)(Math.random() * 10.0) +5));
+					label.setBounds(component.getAssignedX() + insets.left, component.getAssignedY() + insets.top,
+							component.getAssignedWidth(), component.getAssignedHeight());
+					applicationComponentMap.put(name, label);
+					panel.add(label);
+					break;
+				case CANVAS:
+					break;
+				case TABS:
+					break;
+				case HEADING:
+					break;
+				case FOOTER:
+					break;
+				case TREE:
+					break;
+				case ACCORDION:
+					break;
+				case LIST:
+					break;
+				case FILE_CHOOSER:
+					break;
+				case FILE_DROP_AREA:
+					break;
+				case DATATABLE:
+					break;
+				case TEXT_FIELD:
+					JTextField textField = new JTextField();
+					textField.setBounds(component.getAssignedX() + insets.left, component.getAssignedY() + insets.top,
+							component.getAssignedWidth(), component.getAssignedHeight());
+					applicationComponentMap.put(name, textField);
+					panel.add(textField);
+					break;
+				case TEXT_AREA:
+					break;
+				case TEXT_EDITOR:
+					break;
+				case COMBO_BOX:
+					JComboBox comboBox = new JComboBox();
+					comboBox.addItem(MockUtils.generateString((int) Math.random() * 5) + 5);
+					comboBox.addItem(MockUtils.generateString((int) Math.random() * 5) + 5);
+					comboBox.addItem(MockUtils.generateString((int) Math.random() * 5) + 5);
+					comboBox.setBounds(component.getAssignedX() + insets.left, component.getAssignedY() + insets.top,
+							component.getAssignedWidth(), component.getAssignedHeight());
+					applicationComponentMap.put(name, comboBox);
+					panel.add(comboBox);
+					break;
+				case CHECK_BOX:
+					break;
+				case BUTTON:
+					JButton button = new JButton();
+					button.setBounds(component.getAssignedX() + insets.left, component.getAssignedY() + insets.top,
+							component.getAssignedWidth(), component.getAssignedHeight());
+					applicationComponentMap.put(name, button);
+					panel.add(button);
+					break;
+				case TOGGLE_BUTTON:
+					break;
+				case RADIO_BUTTON:
+					break;
+				case PROGRESS_BAR:
+					break;
+				case TOOLBAR:
+					break;
+				case DIALOG:
+					break;
+				case SIDEBAR:
+					break;
+				case DATE_PICKER:
+					break;
+				case CALENDAR:
+					break;
+				case SLIDER:
+					break;
+				case KNOB:
+					break;
+				case PIE_CHART:
+					break;
+				case GRAPH:
+					break;
+				case SPACER:
+					break;
+				case SEPARATOR:
+					break;
+				case STICKY_MENU:
+					break;
+				case GOOGLE_MAPS:
+					break;
+				case VIDEO:
+					break;
+				case CAPTCHA:
+					break;
+				case QR_CODE:
+					break;
+			}
+		});
 	}
 
 	private void drawBlank () {
@@ -196,6 +317,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	 * Draw the layout on the screen.
 	 */
 	private void drawLayout () {
+
 		if (root == null) {
 			return;
 		}
@@ -203,9 +325,9 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		buffer = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
 		bufferGraphics = buffer.createGraphics();
 
-		Vector<LayoutComponent> components = TestCaseUtils.components;
-		for (int i = 0; i < components.size(); i++) {
-			LayoutComponent c = components.get(i);
+		Object[] components = TestCaseUtils.components.values().toArray();
+		for (int i = 0; i < components.length; i++) {
+			LayoutComponent c = (LayoutComponent)components[i];
 			int x = c.getAssignedX();
 			int y = c.getAssignedY();
 			int w = c.getAssignedWidth();
@@ -216,8 +338,8 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			int maxHeight = c.getWidthHeightRange().getMaxHeight();
 
 			// TODO instead of fillRect use images and print them to the UI
-			bufferGraphics.setColor(colorList.get(i));
-			bufferGraphics.fillRect(x, y, w, h);
+//			bufferGraphics.setColor(colorList.get(i));
+//			bufferGraphics.fillRect(x, y, w, h);
 
 			if (c.isFeasible()) {
 				bufferGraphics.setColor(Color.GREEN);
@@ -228,9 +350,8 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			Stroke oldStroke = g2.getStroke();
 			g2.setStroke(correctnessStroke);
 			//TODO : Draw infeasible lines not rectangle
-			g2.drawRect(x+1, y+1, w-2, h-2);
+			g2.drawRect(x + 1, y + 1, w - 2, h - 2);
 			g2.setStroke(oldStroke);
-
 
 			bufferGraphics.setColor(Color.black);
 			bufferGraphics.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -244,9 +365,9 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			bufferGraphics.drawString("" + h, x + w - 30, y + h / 2);
 			bufferGraphics.drawString("" + maxHeight, x + w - 30, y + h / 2 + 25);
 			// Draw the leaf node name
-			bufferGraphics.setColor(TRANSPARENT_BLACK);
-//			bufferGraphics.setFont(new Font("Arial", Font.PLAIN, ((w / 2) + (h / 2)) / 3));
-			bufferGraphics.drawString(c.getLabel(), x + w / 2 - (h / 2) / 6, y + h / 2 + (w / 2) / 6);
+//			bufferGraphics.setColor(TRANSPARENT_BLACK);
+////			bufferGraphics.setFont(new Font("Arial", Font.PLAIN, ((w / 2) + (h / 2)) / 3));
+//			bufferGraphics.drawString(c.getLabel(), x + w / 2 - (h / 2) / 6, y + h / 2 + (w / 2) / 6);
 		}
 		repaint();
 	}
@@ -254,7 +375,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	@Override
 	public void paint (Graphics g) {
 		super.paint(g);
-		panel.getGraphics().drawImage(buffer, 0, 0, null);
+//		panel.getGraphics().drawImage(buffer, 0, 0, null);
 	}
 
 	/**
@@ -292,8 +413,8 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		WidthHeightRange bestFit = null;
 		for (WidthHeightRange range : layouts) {
 			// Find closest pair of points according to root point.
-			double minsDist = Math.sqrt(Math.pow((double)root.getAssignedWidth() - range.getMinWidth(), 2) + Math.pow((double)root.getAssignedHeight() - range.getMinHeight(), 2));
-			double maxsDist = Math.sqrt(Math.pow((double)root.getAssignedWidth() - range.getMaxWidth(), 2) + Math.pow((double)root.getAssignedHeight() - range.getMaxHeight(), 2));
+			double minsDist = Math.sqrt(Math.pow((double) root.getAssignedWidth() - range.getMinWidth(), 2) + Math.pow((double) root.getAssignedHeight() - range.getMinHeight(), 2));
+			double maxsDist = Math.sqrt(Math.pow((double) root.getAssignedWidth() - range.getMaxWidth(), 2) + Math.pow((double) root.getAssignedHeight() - range.getMaxHeight(), 2));
 			// if both min and max values of possible layouts are less than our current distance set the new values
 			if (Math.max(minsDist, maxsDist) < minDiff) {
 				minDiff = Math.max(minsDist, maxsDist);

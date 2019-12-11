@@ -5,11 +5,12 @@ import com.prototype.smartlayout.model.LayoutComponent;
 import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.WidthHeightRange;
 import com.prototype.smartlayout.model.enums.WidthHeightRangeEnum;
+import java.util.Map;
 import java.util.Vector;
 
 public class TestCaseUtils {
 
-	public static Vector<LayoutComponent> components;
+	public static Map<String, LayoutComponent> components;
 
 	/**
 	 * Creates a new component under this layout.
@@ -20,7 +21,7 @@ public class TestCaseUtils {
 	 */
 	public static LayoutComponent createComponent (String label, WidthHeightRange range) {
 		LayoutComponent c = new LayoutComponent(label, range);
-		components.add(c);
+		components.put(label, c);
 		return c;
 	}
 
@@ -32,8 +33,8 @@ public class TestCaseUtils {
 	 * @return The component to be created.
 	 */
 	public static LayoutComponent createComponentFromDictionary (String label, ComponentDictionary item) {
-		LayoutComponent c = new LayoutComponent(item.toString(), new WidthHeightRange(WidthHeightRangeEnum.SINGLE, item.minWidth, item.maxWidth, item.minHeight, item.maxHeight));
-		components.add(c);
+		LayoutComponent c = new LayoutComponent(label, new WidthHeightRange(WidthHeightRangeEnum.SINGLE, item));
+		components.put(label, c);
 		return c;
 	}
 
@@ -55,6 +56,8 @@ public class TestCaseUtils {
 				return dictionaryTestCase2();
 			case 6:
 				return dictionaryTestCase3();
+			case 7:
+				return dictionaryTestCaseWithComponents1();
 			case 1:
 			default:
 				return testCase1();
@@ -417,6 +420,66 @@ public class TestCaseUtils {
 		contM.addComponent(contZ);
 		contM.addComponent(contX);
 		contM.addComponent(compD);
+
+		return contM;
+	}
+
+	private static LayoutContainer dictionaryTestCaseWithComponents1 () {
+		LayoutComponent compA = createComponentFromDictionary("A", ComponentDictionary.LABEL_TALL);
+		LayoutComponent compB = createComponentFromDictionary("B", ComponentDictionary.TEXT_FIELD_MEDIUM);
+		LayoutComponent compC = createComponentFromDictionary("C", ComponentDictionary.LABEL_TALL);
+		LayoutComponent compD = createComponentFromDictionary("D", ComponentDictionary.TEXT_FIELD_MEDIUM);
+		LayoutComponent compE = createComponentFromDictionary("E", ComponentDictionary.LABEL_TALL);
+		LayoutComponent compF = createComponentFromDictionary("F", ComponentDictionary.COMBO_BOX_MEDIUM);
+		LayoutComponent compG = createComponentFromDictionary("G", ComponentDictionary.LABEL_TALL);
+		LayoutComponent compH = createComponentFromDictionary("H", ComponentDictionary.TEXT_FIELD_MEDIUM);
+		LayoutComponent compI = createComponentFromDictionary("I", ComponentDictionary.BUTTON_WIDE);
+		LayoutComponent compJ = createComponentFromDictionary("J", ComponentDictionary.BUTTON_WIDE);
+
+		// first line
+		LayoutContainer contY = new LayoutContainer("Y");
+		contY.addComponent(compA);
+		contY.addComponent(compB);
+
+		// second line
+		LayoutContainer contT = new LayoutContainer("T");
+		contT.addComponent(compC);
+		contT.addComponent(compD);
+
+		// third line
+		LayoutContainer contR = new LayoutContainer("R");
+		contR.addComponent(compE);
+		contR.addComponent(compF);
+
+		// fourth line
+		LayoutContainer contN = new LayoutContainer("N");
+		contN.addComponent(compG);
+		contN.addComponent(compH);
+
+		// buttons
+		LayoutContainer contZ = new LayoutContainer("Z");
+		contZ.addComponent(compI);
+		contZ.addComponent(compJ);
+
+		// first two lines
+		LayoutContainer contX = new LayoutContainer("X");
+		contX.addComponent(contY);
+		contX.addComponent(contT);
+
+		// last two lines
+		LayoutContainer contQ = new LayoutContainer("Q");
+		contQ.addComponent(contR);
+		contQ.addComponent(contN);
+
+		// all lines
+		LayoutContainer contU = new LayoutContainer("U");
+		contU.addComponent(contX);
+		contU.addComponent(contQ);
+
+		// all lines and buttons
+		LayoutContainer contM = new LayoutContainer("M");
+		contM.addComponent(contU);
+		contM.addComponent(contZ);
 
 		return contM;
 	}

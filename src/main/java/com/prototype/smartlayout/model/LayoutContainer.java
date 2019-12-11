@@ -265,9 +265,9 @@ public class LayoutContainer implements Layoutable {
 			// Balance min
 //			feasible = strategyFair(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues);
 			// Balance max
-//			feasible = strategyFair(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
+			feasible = strategyFair(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 
-			feasible = strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
+//			feasible = strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 		} else {
 			log.debug("Shouldn't be here - Probably infeasible layout.");
 		}
@@ -421,7 +421,10 @@ public class LayoutContainer implements Layoutable {
 					q = p + 1;
 				}
 			}
-
+			if (indexOrder.length < 1) {
+				log.debug("Layout's constraints exceeds max values for components!");
+				break;
+			}
 			if (remaining < 0) {
 				log.error("Remaining can't be negative!");
 				break;
@@ -486,5 +489,16 @@ public class LayoutContainer implements Layoutable {
 
 	public void addComponent (Layoutable comp) {
 		children.add(comp);
+	}
+
+	public LayoutComponent findComponent (String label) {
+		for (Layoutable component : children) {
+			if (component instanceof LayoutComponent && label.equals(((LayoutComponent) component).getLabel())) {
+				return (LayoutComponent) component;
+			} else if (component instanceof LayoutContainer) {
+				return ((LayoutContainer)component).findComponent(label);
+			}
+		}
+		return null;
 	}
 }
