@@ -323,8 +323,6 @@ public class LayoutContainer implements Layoutable {
 				break;
 			}
 		}
-		// TODO new strategy not balanced but favor minimums.
-		//  100-200 150-200 200-600 -> 100,150,200 -> 150,150,200 -> 200,200,200 -> 200,200,400
 
 		//while it can still be distributed, distribute
 		while (remaining > 0) {

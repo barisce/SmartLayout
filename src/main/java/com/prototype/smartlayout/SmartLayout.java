@@ -101,7 +101,6 @@ public class SmartLayout extends JFrame implements ComponentListener {
 						if (finalLayoutCase.toString().equals(comboBox.getSelectedItem().toString())) {
 							root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCase);
 							log.debug(finalLayoutCase);
-							drawLayout();
 							resizeComponents();
 						}
 					}
@@ -136,7 +135,6 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getFeasibleLayout(finalLayoutCases));
 			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 75);
 			log.debug(getFeasibleLayout(finalLayoutCases));
-			drawLayout();
 			resizeComponents();
 		});
 		topPanel.add(button);
@@ -191,7 +189,6 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
 		txtnum1.setText(root.getAssignedWidth() + "");
 		txtnum2.setText(root.getAssignedHeight() + "");
-		drawLayout();
 		resizeComponents();
 	}
 
@@ -312,72 +309,6 @@ public class SmartLayout extends JFrame implements ComponentListener {
 					break;
 			}
 		});
-	}
-
-	private void drawBlank () {
-		buffer = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
-		bufferGraphics = buffer.createGraphics();
-		bufferGraphics.setColor(Color.black);
-		bufferGraphics.fillRect(0, 0, panel.getWidth(), panel.getHeight());
-	}
-
-	/**
-	 * Draw the layout on the screen.
-	 */
-	private void drawLayout () {
-
-		if (root == null) {
-			return;
-		}
-
-		buffer = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
-		bufferGraphics = buffer.createGraphics();
-
-		Object[] components = TestCaseUtils.components.values().toArray();
-		for (int i = 0; i < components.length; i++) {
-			LayoutComponent c = (LayoutComponent) components[i];
-			int x = c.getAssignedX();
-			int y = c.getAssignedY();
-			int w = c.getAssignedWidth();
-			int h = c.getAssignedHeight();
-			int minWidth = c.getWidthHeightRange().getMinWidth();
-			int maxWidth = c.getWidthHeightRange().getMaxWidth();
-			int minHeight = c.getWidthHeightRange().getMinHeight();
-			int maxHeight = c.getWidthHeightRange().getMaxHeight();
-
-			// TODO instead of fillRect use images and print them to the UI
-//			bufferGraphics.setColor(colorList.get(i));
-//			bufferGraphics.fillRect(x, y, w, h);
-
-			if (c.isFeasible()) {
-				bufferGraphics.setColor(Color.GREEN);
-			} else {
-				bufferGraphics.setColor(Color.RED);
-			}
-			Graphics2D g2 = (Graphics2D) bufferGraphics;
-			Stroke oldStroke = g2.getStroke();
-			g2.setStroke(correctnessStroke);
-			//TODO : Draw infeasible lines not rectangle
-			g2.drawRect(x + 1, y + 1, w - 2, h - 2);
-			g2.setStroke(oldStroke);
-
-			bufferGraphics.setColor(Color.black);
-			bufferGraphics.setFont(new Font("Arial", Font.PLAIN, 14));
-			// Coords
-			bufferGraphics.drawString(x + " , " + y, x + 5, y + 15);
-			// Draw the min,actual,max values of width-height
-			// X values
-			bufferGraphics.drawString(minWidth + ", " + w + ", " + maxWidth, x + w / 2 - 40, y + h - 10);
-			// Y values
-			bufferGraphics.drawString("" + minHeight, x + w - 30, y + h / 2 - 25);
-			bufferGraphics.drawString("" + h, x + w - 30, y + h / 2);
-			bufferGraphics.drawString("" + maxHeight, x + w - 30, y + h / 2 + 25);
-			// Draw the leaf node name
-//			bufferGraphics.setColor(TRANSPARENT_BLACK);
-////			bufferGraphics.setFont(new Font("Arial", Font.PLAIN, ((w / 2) + (h / 2)) / 3));
-//			bufferGraphics.drawString(c.getLabel(), x + w / 2 - (h / 2) / 6, y + h / 2 + (w / 2) / 6);
-		}
-		repaint();
 	}
 
 	@Override
