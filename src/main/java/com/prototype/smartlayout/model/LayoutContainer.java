@@ -496,7 +496,10 @@ public class LayoutContainer implements Layoutable {
 			if (component instanceof LayoutComponent && label.equals(((LayoutComponent) component).getLabel())) {
 				return (LayoutComponent) component;
 			} else if (component instanceof LayoutContainer) {
-				return ((LayoutContainer)component).findComponent(label);
+				LayoutComponent comp = ((LayoutContainer)component).findComponent(label);
+				if (comp != null) {
+					return comp;
+				}
 			}
 		}
 		return null;

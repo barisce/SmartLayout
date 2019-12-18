@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -76,6 +77,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		panel = new JPanel(null);
 		panel.setLayout(null);
 		panel.setSize(800, 600);
+//		panel.setPreferredSize(new Dimension(800, 600));
 		panel.addMouseListener(new CanvasMouseListener());
 		panel.addMouseWheelListener(new CanvasMouseListener());
 		panel.addKeyListener(new KeyInputHandler());
@@ -195,11 +197,17 @@ public class SmartLayout extends JFrame implements ComponentListener {
 
 	private void resizeComponents () {
 		Insets insets = panel.getInsets();
+//		Dimension d = new Dimension(0, 0);
 		applicationComponentMap.forEach((name, component) -> {
 			LayoutComponent layoutable = ((LayoutContainer) root).findComponent(name);
-			if (layoutable != null)
+			if (layoutable != null) {
 				component.setBounds(layoutable.getAssignedX() + insets.left, layoutable.getAssignedY() + insets.top,
 						layoutable.getAssignedWidth(), layoutable.getAssignedHeight());
+//				d.setSize(layoutable.getAssignedWidth(), layoutable.getAssignedHeight());
+//				component.setPreferredSize(d);
+				component.setBorder(BorderFactory.createLineBorder(layoutable.isFeasible() ? Color.GREEN : Color.RED));
+				component.setToolTipText(name);
+			}
 		});
 	}
 
@@ -208,7 +216,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		TestCaseUtils.components.forEach((name, component) -> {
 			switch (component.getWidthHeightRange().getDict().type) {
 				case LABEL:
-					JLabel label = new JLabel(MockUtils.generateString((int)(Math.random() * 10.0) +5));
+					JLabel label = new JLabel(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
 					label.setBounds(component.getAssignedX() + insets.left, component.getAssignedY() + insets.top,
 							component.getAssignedWidth(), component.getAssignedHeight());
 					applicationComponentMap.put(name, label);
@@ -247,9 +255,9 @@ public class SmartLayout extends JFrame implements ComponentListener {
 					break;
 				case COMBO_BOX:
 					JComboBox comboBox = new JComboBox();
-					comboBox.addItem(MockUtils.generateString((int) Math.random() * 5) + 5);
-					comboBox.addItem(MockUtils.generateString((int) Math.random() * 5) + 5);
-					comboBox.addItem(MockUtils.generateString((int) Math.random() * 5) + 5);
+					comboBox.addItem(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
+					comboBox.addItem(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
+					comboBox.addItem(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
 					comboBox.setBounds(component.getAssignedX() + insets.left, component.getAssignedY() + insets.top,
 							component.getAssignedWidth(), component.getAssignedHeight());
 					applicationComponentMap.put(name, comboBox);
@@ -258,7 +266,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 				case CHECK_BOX:
 					break;
 				case BUTTON:
-					JButton button = new JButton();
+					JButton button = new JButton(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
 					button.setBounds(component.getAssignedX() + insets.left, component.getAssignedY() + insets.top,
 							component.getAssignedWidth(), component.getAssignedHeight());
 					applicationComponentMap.put(name, button);
@@ -327,7 +335,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 
 		Object[] components = TestCaseUtils.components.values().toArray();
 		for (int i = 0; i < components.length; i++) {
-			LayoutComponent c = (LayoutComponent)components[i];
+			LayoutComponent c = (LayoutComponent) components[i];
 			int x = c.getAssignedX();
 			int y = c.getAssignedY();
 			int w = c.getAssignedWidth();
