@@ -25,7 +25,7 @@ public class LayoutContainerUtils {
 	public static void checkForDistributionCompletedSuccessfully (boolean[] removedIndex, String id) {
 		for (boolean index : removedIndex) {
 			if (!index) {
-				log.error("LayoutContainer with id: " + id + " is not a tight fit.");
+				log.trace("LayoutContainer with id: " + id + " is not a tight fit.");
 				break; // not tight fit
 			}
 		}

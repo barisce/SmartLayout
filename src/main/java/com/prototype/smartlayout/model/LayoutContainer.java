@@ -28,6 +28,11 @@ public class LayoutContainer implements Layoutable {
 		children = new Vector<>();
 	}
 
+	public LayoutContainer (String id, Layoutable... layoutables) {
+		this(id);
+		children.addAll(Arrays.asList(layoutables));
+	}
+
 	/**
 	 * This method returns all possible layout combinations for this subtree of children. While
 	 * computing all layouts, this method does the following:<br>
@@ -485,8 +490,8 @@ public class LayoutContainer implements Layoutable {
 		return true;
 	}
 
-	public void addComponent (Layoutable comp) {
-		children.add(comp);
+	public void addComponent (Layoutable... comp) {
+		children.addAll(Arrays.asList(comp));
 	}
 
 	public LayoutComponent findComponent (String label) {

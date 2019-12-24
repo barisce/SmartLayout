@@ -49,7 +49,6 @@ import org.apache.log4j.PropertyConfigurator;
 @Log4j
 public class SmartLayout extends JFrame implements ComponentListener {
 	private static final long serialVersionUID = 6944709955451188697L;
-	private static final Color TRANSPARENT_BLACK = new Color(0f, 0f, 0f, 0.4f);
 	private final JPanel panel;
 	private JCheckBox showOnlyFeasibleLayouts = new JCheckBox("");
 	private Vector<WidthHeightRange> feasibleLayouts = new Vector<>();
@@ -58,15 +57,12 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	private JComboBox comboBox;
 	private List<Color> colorList = new ArrayList<>();
 	private Layoutable root;
-	private BasicStroke correctnessStroke = new BasicStroke(2);
 	private BufferedImage buffer;
-	private Graphics bufferGraphics;
 	private Vector<WidthHeightRange> finalLayoutCases;
-	private Map<String, JComponent> applicationComponentMap = new HashMap<>();
 
 	private SmartLayout () {
 		super();
-		TestCaseUtils.components = new HashMap<>();
+		TestCaseUtils.jComponentMap = new HashMap<>();
 		root = null;
 		finalLayoutCases = null;
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -77,7 +73,6 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		panel = new JPanel(null);
 		panel.setLayout(null);
 		panel.setSize(800, 600);
-//		panel.setPreferredSize(new Dimension(800, 600));
 		panel.addMouseListener(new CanvasMouseListener());
 		panel.addMouseWheelListener(new CanvasMouseListener());
 		panel.addKeyListener(new KeyInputHandler());
@@ -140,12 +135,9 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		topPanel.add(button);
 		outerPanel.add(panel, BorderLayout.CENTER);
 		// give the test number that you want to execute
-		root = TestCaseUtils.executeTest(7);
-		createComponentsOfTree();
+		root = TestCaseUtils.executeTest(4);
+		TestCaseUtils.createComponentsOfTree(panel);
 		outerPanel.add(topPanel, BorderLayout.PAGE_START);
-
-		buffer = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
-		bufferGraphics = buffer.createGraphics();
 
 		setContentPane(outerPanel);
 		setVisible(true);
@@ -168,7 +160,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	 */
 	private void run () {
 		log.debug("Starting test...");
-		TestCaseUtils.components.forEach((key, ignored) -> colorList.add(new Color(100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100))));
+		TestCaseUtils.jComponentMap.forEach((key, ignored) -> colorList.add(new Color(100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100))));
 
 		((LayoutContainer) root).clearMemoization();
 		finalLayoutCases = root.getRanges();
@@ -183,7 +175,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		}
 		setResizeOnRoot();
 		getFinalLayoutCases();
-		this.root.layout(0, 0, root.getAssignedWidth() > 0 ? root.getAssignedWidth() : 0, root.getAssignedHeight() > 0 ? root.getAssignedHeight() : 0, getFeasibleLayout(feasibleLayouts));
+		this.root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), getFeasibleLayout(feasibleLayouts));
 		log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
 
 		panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
@@ -193,128 +185,14 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	}
 
 	private void resizeComponents () {
-		Insets insets = panel.getInsets();
-//		Dimension d = new Dimension(0, 0);
-		applicationComponentMap.forEach((name, component) -> {
-			LayoutComponent layoutable = ((LayoutContainer) root).findComponent(name);
-			if (layoutable != null) {
-				component.setBounds(layoutable.getAssignedX() + insets.left, layoutable.getAssignedY() + insets.top,
-						layoutable.getAssignedWidth(), layoutable.getAssignedHeight());
-//				d.setSize(layoutable.getAssignedWidth(), layoutable.getAssignedHeight());
-//				component.setPreferredSize(d);
-				component.setBorder(BorderFactory.createLineBorder(layoutable.isFeasible() ? Color.GREEN : Color.RED));
-				component.setToolTipText(name);
+		TestCaseUtils.jComponentMap.forEach((lComponent, jComponent) -> {
+			if (lComponent != null) {
+				jComponent.setBounds(lComponent.getAssignedX(), lComponent.getAssignedY(),
+						lComponent.getAssignedWidth(), lComponent.getAssignedHeight());
+				jComponent.setBorder(BorderFactory.createLineBorder(lComponent.isFeasible() ? Color.GREEN : Color.RED));
+				jComponent.setToolTipText(lComponent.getLabel());
 			}
 		});
-	}
-
-	private void createComponentsOfTree () {
-		Insets insets = panel.getInsets();
-		TestCaseUtils.components.forEach((name, component) -> {
-			switch (component.getWidthHeightRange().getDict().type) {
-				case LABEL:
-					JLabel label = new JLabel(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
-					label.setBounds(component.getAssignedX() + insets.left, component.getAssignedY() + insets.top,
-							component.getAssignedWidth(), component.getAssignedHeight());
-					applicationComponentMap.put(name, label);
-					panel.add(label);
-					break;
-				case CANVAS:
-					break;
-				case TABS:
-					break;
-				case HEADING:
-					break;
-				case FOOTER:
-					break;
-				case TREE:
-					break;
-				case ACCORDION:
-					break;
-				case LIST:
-					break;
-				case FILE_CHOOSER:
-					break;
-				case FILE_DROP_AREA:
-					break;
-				case DATATABLE:
-					break;
-				case TEXT_FIELD:
-					JTextField textField = new JTextField();
-					textField.setBounds(component.getAssignedX() + insets.left, component.getAssignedY() + insets.top,
-							component.getAssignedWidth(), component.getAssignedHeight());
-					applicationComponentMap.put(name, textField);
-					panel.add(textField);
-					break;
-				case TEXT_AREA:
-					break;
-				case TEXT_EDITOR:
-					break;
-				case COMBO_BOX:
-					JComboBox comboBox = new JComboBox();
-					comboBox.addItem(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
-					comboBox.addItem(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
-					comboBox.addItem(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
-					comboBox.setBounds(component.getAssignedX() + insets.left, component.getAssignedY() + insets.top,
-							component.getAssignedWidth(), component.getAssignedHeight());
-					applicationComponentMap.put(name, comboBox);
-					panel.add(comboBox);
-					break;
-				case CHECK_BOX:
-					break;
-				case BUTTON:
-					JButton button = new JButton(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
-					button.setBounds(component.getAssignedX() + insets.left, component.getAssignedY() + insets.top,
-							component.getAssignedWidth(), component.getAssignedHeight());
-					applicationComponentMap.put(name, button);
-					panel.add(button);
-					break;
-				case TOGGLE_BUTTON:
-					break;
-				case RADIO_BUTTON:
-					break;
-				case PROGRESS_BAR:
-					break;
-				case TOOLBAR:
-					break;
-				case DIALOG:
-					break;
-				case SIDEBAR:
-					break;
-				case DATE_PICKER:
-					break;
-				case CALENDAR:
-					break;
-				case SLIDER:
-					break;
-				case KNOB:
-					break;
-				case PIE_CHART:
-					break;
-				case GRAPH:
-					break;
-				case SPACER:
-					break;
-				case SEPARATOR:
-					break;
-				case STICKY_MENU:
-					break;
-				case GOOGLE_MAPS:
-					break;
-				case VIDEO:
-					break;
-				case CAPTCHA:
-					break;
-				case QR_CODE:
-					break;
-			}
-		});
-	}
-
-	@Override
-	public void paint (Graphics g) {
-		super.paint(g);
-//		panel.getGraphics().drawImage(buffer, 0, 0, null);
 	}
 
 	/**

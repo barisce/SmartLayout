@@ -1,40 +1,34 @@
 package com.prototype.smartlayout.utils;
 
-import com.prototype.smartlayout.dictionary.ComponentDictionary;
 import com.prototype.smartlayout.model.LayoutComponent;
 import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.WidthHeightRange;
+import com.prototype.smartlayout.model.enums.ComponentDimensionEnum;
 import com.prototype.smartlayout.model.enums.WidthHeightRangeEnum;
 import java.util.Map;
-import java.util.Vector;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 public class TestCaseUtils {
 
-	public static Map<String, LayoutComponent> components;
-
-	/**
-	 * Creates a new component under this layout.
-	 *
-	 * @param label The label of the new component.
-	 * @param range The width and height range of the new component.
-	 * @return The component to be created.
-	 */
-	public static LayoutComponent createComponent (String label, WidthHeightRange range) {
-		LayoutComponent c = new LayoutComponent(label, range);
-		components.put(label, c);
-		return c;
-	}
+	public static Map<LayoutComponent, JComponent> jComponentMap;
 
 	/**
 	 * Creates a new component from dictionary under this layout.
 	 *
-	 * @param label The label of the new component.
-	 * @param item  The dictionary value that will contain the range info.
+	 * @param label     The label of the new component.
+	 * @param dimension The enum value that will contain the range info.
 	 * @return The component to be created.
 	 */
-	public static LayoutComponent createComponentFromDictionary (String label, ComponentDictionary item) {
-		LayoutComponent c = new LayoutComponent(label, new WidthHeightRange(WidthHeightRangeEnum.SINGLE, item));
-		components.put(label, c);
+	public static LayoutComponent createComponentFromDictionary (String label, JComponent component, ComponentDimensionEnum dimension) {
+		LayoutComponent c = new LayoutComponent(label, new WidthHeightRange(WidthHeightRangeEnum.SINGLE, dimension));
+		jComponentMap.put(c, component);
 		return c;
 	}
 
@@ -46,236 +40,17 @@ public class TestCaseUtils {
 	 */
 	public static LayoutContainer executeTest (int testNumber) {
 		switch (testNumber) {
-			case 2:
-				return testCase2();
-			case 3:
-				return testCase3();
-			case 4:
-				return dictionaryTestCase1();
-			case 5:
-				return dictionaryTestCase2();
-			case 6:
-				return dictionaryTestCase3();
-			case 7:
-				return dictionaryTestCaseWithComponents1();
 			case 1:
+				return dictionaryTestCase1();
+			case 2:
+				return dictionaryTestCase2();
+			case 3:
+				return dictionaryTestCase3();
+			case 4:
+				return dictionaryTestCaseWithComponents1();
+			case 5:
 			default:
-				return testCase1();
-		}
-	}
-
-	private static LayoutContainer testCase1 () {
-		/*
-		A diagram to show what this test is about:
-
-		M
-		+--------------------------------+--------------------------------+
-		|                                |                                |
-		Z                                X                                D
-		+---------------------+          +----------+----------+
-		|                     |          |          |          |
-		Y                     G          A          B          C
-		+----------+
-		|          |
-		E          F
-		*/
-
-		{ // The braces are for hiding chunks of code.
-			LayoutComponent compA =
-					createComponent(
-							"A",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 50, 250, 50, 250));
-			LayoutComponent compB =
-					createComponent(
-							"B",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 50, 250, 50, 250));
-			LayoutComponent compC =
-					createComponent(
-							"C",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 50, 250, 50, 250));
-			LayoutComponent compD =
-					createComponent(
-							"D",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 400, 200, 400));
-			LayoutComponent compE =
-					createComponent(
-							"E",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 500, 50, 150));
-			LayoutComponent compF =
-					createComponent(
-							"F",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 500, 50, 150));
-			LayoutComponent compG =
-					createComponent(
-							"G",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 400, 100, 400));
-
-			LayoutContainer contY = new LayoutContainer("Y");
-			contY.addComponent(compE);
-			contY.addComponent(compF);
-
-			LayoutContainer contZ = new LayoutContainer("Z");
-			contZ.addComponent(contY);
-			contZ.addComponent(compG);
-
-			LayoutContainer contX = new LayoutContainer("X");
-			contX.addComponent(compA);
-			contX.addComponent(compB);
-			contX.addComponent(compC);
-
-			LayoutContainer contM = new LayoutContainer("M");
-			contM.addComponent(contZ);
-			contM.addComponent(contX);
-			contM.addComponent(compD);
-
-			return contM;
-		}
-	}
-
-	private static LayoutContainer testCase2 () {
-		/*
-		A diagram to show what this test is about:
-
-		                      M
-		           +----------+----------+---------+
-		           |                               |
-		           K                               Z
-		+----------+                    +----------+
-		|          |                    |          |
-		A          Y                    E          T
-				   +----------+                    +----------+
-				   |          |                    |          |
-				   X          D                    F          G
-		+----------+
-		|          |
-		B          C
-		*/
-
-		{ // The braces are for hiding chunks of code.
-			LayoutComponent compA =
-					createComponent(
-							"A",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 50, 250, 50, 250));
-			LayoutComponent compB =
-					createComponent(
-							"B",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 50, 250, 50, 250));
-			LayoutComponent compC =
-					createComponent(
-							"C",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 50, 250, 50, 250));
-			LayoutComponent compD =
-					createComponent(
-							"D",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 450, 200, 450));
-			LayoutComponent compE =
-					createComponent(
-							"E",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 500, 50, 250));
-			LayoutComponent compF =
-					createComponent(
-							"F",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 500, 50, 250));
-			LayoutComponent compG =
-					createComponent(
-							"G",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 150, 450, 150, 350));
-
-			LayoutContainer contX = new LayoutContainer("X");
-			contX.addComponent(compB);
-			contX.addComponent(compC);
-
-			LayoutContainer contY = new LayoutContainer("Y");
-			contY.addComponent(contX);
-			contY.addComponent(compD);
-
-			LayoutContainer contK = new LayoutContainer("K");
-			contK.addComponent(compA);
-			contK.addComponent(contY);
-
-			LayoutContainer contT = new LayoutContainer("T");
-			contT.addComponent(compF);
-			contT.addComponent(compG);
-
-			LayoutContainer contZ = new LayoutContainer("Z");
-			contZ.addComponent(compE);
-			contZ.addComponent(contT);
-
-
-			LayoutContainer contM = new LayoutContainer("M");
-			contM.addComponent(contK);
-			contM.addComponent(contZ);
-
-			return contM;
-		}
-	}
-
-	private static LayoutContainer testCase3 () {
-		/*
-		A diagram to show what this test is about:
-
-		                      M
-		           +----------+----------+---------+
-		           |          |                    |
-		           K          D                    Z
-		+----------+                    +----------+----------+
-		|          |                    |          |          |
-		A          Y                    E          F          G
-				   +----------+
-				   |          |
-				   B          C
-		*/
-
-		{ // The braces are for hiding chunks of code.
-			LayoutComponent compA =
-					createComponent(
-							"A",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 250, 150, 400));
-			LayoutComponent compB =
-					createComponent(
-							"B",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 300, 150, 400));
-			LayoutComponent compC =
-					createComponent(
-							"C",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 200, 350, 150, 400));
-			LayoutComponent compD =
-					createComponent(
-							"D",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 150, 300, 250, 500));
-			LayoutComponent compE =
-					createComponent(
-							"E",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 50, 150, 150, 200));
-			LayoutComponent compF =
-					createComponent(
-							"F",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 250, 450, 200, 300));
-			LayoutComponent compG =
-					createComponent(
-							"G",
-							new WidthHeightRange(WidthHeightRangeEnum.SINGLE, 100, 300, 250, 300));
-
-			LayoutContainer contY = new LayoutContainer("Y");
-			contY.addComponent(compB);
-			contY.addComponent(compC);
-
-			LayoutContainer contK = new LayoutContainer("K");
-			contK.addComponent(contY);
-			contK.addComponent(compA);
-
-			LayoutContainer contZ = new LayoutContainer("Z");
-			contZ.addComponent(compE);
-			contZ.addComponent(compF);
-			contZ.addComponent(compG);
-
-
-			LayoutContainer contM = new LayoutContainer("M");
-			contM.addComponent(contK);
-			contM.addComponent(compD);
-			contM.addComponent(contZ);
-
-			return contM;
+				return dictionaryTestCaseWithComponents2();
 		}
 	}
 
@@ -296,191 +71,154 @@ public class TestCaseUtils {
 		*/
 
 		{ // The braces are for hiding chunks of code.
-			LayoutComponent compA = createComponentFromDictionary("A", ComponentDictionary.TEST_BOX_SMALL_100x100_200x200);
-			LayoutComponent compB = createComponentFromDictionary("B", ComponentDictionary.TEST_BOX_MEDIUM_100x100_400x400);
-			LayoutComponent compC = createComponentFromDictionary("C", ComponentDictionary.TEST_BOX_MEDIUM_100x100_400x400);
-			LayoutComponent compD = createComponentFromDictionary("D", ComponentDictionary.TEST_BOX_LARGE_100x100_600x600);
-			LayoutComponent compE = createComponentFromDictionary("E", ComponentDictionary.TEST_BOX_TALL_100x100_200x600);
-			LayoutComponent compF = createComponentFromDictionary("F", ComponentDictionary.TEST_BOX_TALL_100x100_200x600);
-			LayoutComponent compG = createComponentFromDictionary("G", ComponentDictionary.TEST_BOX_WIDE_100x100_600x200);
+			LayoutComponent compA = createComponentFromDictionary("A", new JLabel(), ComponentDimensionEnum.SMALL_SMALL);
+			LayoutComponent compB = createComponentFromDictionary("B", new JButton(), ComponentDimensionEnum.SMALL_SLACK_SMALL_SLACK);
+			LayoutComponent compC = createComponentFromDictionary("C", new JButton(), ComponentDimensionEnum.SMALL_SLACK_SMALL_SLACK);
+			LayoutComponent compD = createComponentFromDictionary("D", new JTextField(), ComponentDimensionEnum.LARGE_SLACK_LARGE_SLACK);
+			LayoutComponent compE = createComponentFromDictionary("E", new JTextArea(), ComponentDimensionEnum.SMALL_LARGE_SLACK);
+			LayoutComponent compF = createComponentFromDictionary("F", new JComboBox<String>(), ComponentDimensionEnum.SMALL_LARGE_SLACK);
+			LayoutComponent compG = createComponentFromDictionary("G", new JRadioButton(), ComponentDimensionEnum.LARGE_SLACK_SMALL);
 
-			LayoutContainer contY = new LayoutContainer("Y");
-			contY.addComponent(compE);
-			contY.addComponent(compF);
-
-			LayoutContainer contZ = new LayoutContainer("Z");
-			contZ.addComponent(contY);
-			contZ.addComponent(compG);
-
-			LayoutContainer contX = new LayoutContainer("X");
-			contX.addComponent(compA);
-			contX.addComponent(compB);
-			contX.addComponent(compC);
-
-			LayoutContainer contM = new LayoutContainer("M");
-			contM.addComponent(contZ);
-			contM.addComponent(contX);
-			contM.addComponent(compD);
-
-			return contM;
+			LayoutContainer contY = new LayoutContainer("Y", compE, compF);
+			LayoutContainer contZ = new LayoutContainer("Z", contY, compG);
+			LayoutContainer contX = new LayoutContainer("X", compA, compB, compC);
+			return new LayoutContainer("M", contZ, contX, compD);
 		}
 	}
 
 	private static LayoutContainer dictionaryTestCase2 () {
-		LayoutComponent compA = createComponentFromDictionary("A", ComponentDictionary.TEST_BOX_SMALL_100x100_200x200);
-		LayoutComponent compB = createComponentFromDictionary("B", ComponentDictionary.TEST_BOX_MEDIUM_100x100_400x400);
-		LayoutComponent compC = createComponentFromDictionary("C", ComponentDictionary.TEST_BOX_MEDIUM_100x100_400x400);
-		LayoutComponent compD = createComponentFromDictionary("D", ComponentDictionary.TEST_BOX_LARGE_100x100_600x600);
-		LayoutComponent compE = createComponentFromDictionary("E", ComponentDictionary.TEST_BOX_TALL_100x100_200x600);
-		LayoutComponent compF = createComponentFromDictionary("F", ComponentDictionary.TEST_BOX_TALL_100x100_200x600);
-		LayoutComponent compG = createComponentFromDictionary("G", ComponentDictionary.TEST_BOX_WIDE_100x100_600x200);
-		LayoutComponent compH = createComponentFromDictionary("H", ComponentDictionary.TEST_BOX_MEDIUM_100x100_400x400);
-		LayoutComponent compI = createComponentFromDictionary("I", ComponentDictionary.TEST_BOX_LARGE_100x100_600x600);
-		LayoutComponent compJ = createComponentFromDictionary("J", ComponentDictionary.TEST_BOX_LARGE_100x100_600x600);
-		LayoutComponent compK = createComponentFromDictionary("K", ComponentDictionary.TEST_BOX_SMALL_100x100_200x200);
-		LayoutComponent compL = createComponentFromDictionary("L", ComponentDictionary.TEST_BOX_SMALL_100x100_200x200);
+		LayoutComponent compA = createComponentFromDictionary("A", new JLabel(), ComponentDimensionEnum.SMALL_SMALL);
+		LayoutComponent compB = createComponentFromDictionary("B", new JButton(), ComponentDimensionEnum.SMALL_SLACK_SMALL_SLACK);
+		LayoutComponent compC = createComponentFromDictionary("C", new JButton(), ComponentDimensionEnum.SMALL_SLACK_SMALL_SLACK);
+		LayoutComponent compD = createComponentFromDictionary("D", new JTextField(), ComponentDimensionEnum.LARGE_SLACK_LARGE_SLACK);
+		LayoutComponent compE = createComponentFromDictionary("E", new JTextArea(), ComponentDimensionEnum.SMALL_LARGE_SLACK);
+		LayoutComponent compF = createComponentFromDictionary("F", new JComboBox<String>(), ComponentDimensionEnum.SMALL_LARGE_SLACK);
+		LayoutComponent compG = createComponentFromDictionary("G", new JRadioButton(), ComponentDimensionEnum.LARGE_SLACK_SMALL);
+		LayoutComponent compH = createComponentFromDictionary("H", new JLabel(), ComponentDimensionEnum.SMALL_SLACK_SMALL_SLACK);
+		LayoutComponent compI = createComponentFromDictionary("I", new JButton(), ComponentDimensionEnum.LARGE_SLACK_LARGE_SLACK);
+		LayoutComponent compJ = createComponentFromDictionary("J", new JButton(), ComponentDimensionEnum.LARGE_SLACK_LARGE_SLACK);
+		LayoutComponent compK = createComponentFromDictionary("K", new JTextField(), ComponentDimensionEnum.SMALL_SMALL);
+		LayoutComponent compL = createComponentFromDictionary("L", new JTextArea(), ComponentDimensionEnum.SMALL_SMALL);
 
-		LayoutContainer contY = new LayoutContainer("Y");
-		contY.addComponent(compE);
-		contY.addComponent(compF);
-
-		LayoutContainer contT = new LayoutContainer("T");
-		contT.addComponent(compK);
-		contT.addComponent(compL);
-
-		LayoutContainer contR = new LayoutContainer("R");
-		contR.addComponent(contT);
-		contR.addComponent(compJ);
-
-		LayoutContainer contN = new LayoutContainer("N");
-		contN.addComponent(compG);
-		contN.addComponent(compH);
-		contN.addComponent(compI);
-
-		LayoutContainer contZ = new LayoutContainer("Z");
-		contZ.addComponent(contY);
-		contZ.addComponent(contR);
-		contZ.addComponent(contN);
-
-		LayoutContainer contX = new LayoutContainer("X");
-		contX.addComponent(compA);
-		contX.addComponent(compB);
-		contX.addComponent(compC);
-
-		LayoutContainer contM = new LayoutContainer("M");
-		contM.addComponent(contZ);
-		contM.addComponent(contX);
-		contM.addComponent(compD);
-
-		return contM;
+		LayoutContainer contY = new LayoutContainer("Y", compE, compF);
+		LayoutContainer contT = new LayoutContainer("T", compK, compL);
+		LayoutContainer contR = new LayoutContainer("R", contT, compJ);
+		LayoutContainer contN = new LayoutContainer("N", compG, compH, compI);
+		LayoutContainer contZ = new LayoutContainer("Z", contY, contR, contN);
+		LayoutContainer contX = new LayoutContainer("X", compA, compB, compC);
+		return new LayoutContainer("M", contZ, contX, compD);
 	}
 
 	private static LayoutContainer dictionaryTestCase3 () {
-		LayoutComponent compA = createComponentFromDictionary("A", ComponentDictionary.TEST_BOX_SMALL_100x100_200x200);
-		LayoutComponent compB = createComponentFromDictionary("B", ComponentDictionary.TEST_BOX_MEDIUM_200x200_400x400);
-		LayoutComponent compC = createComponentFromDictionary("C", ComponentDictionary.TEST_BOX_MEDIUM_100x100_400x400);
-		LayoutComponent compD = createComponentFromDictionary("D", ComponentDictionary.TEST_BOX_LARGE_100x100_600x600);
-		LayoutComponent compE = createComponentFromDictionary("E", ComponentDictionary.TEST_BOX_TALL_100x100_200x600);
-		LayoutComponent compF = createComponentFromDictionary("F", ComponentDictionary.TEST_BOX_TALL_100x100_200x600);
-		LayoutComponent compG = createComponentFromDictionary("G", ComponentDictionary.TEST_BOX_WIDE_100x100_600x200);
-		LayoutComponent compH = createComponentFromDictionary("H", ComponentDictionary.TEST_BOX_MEDIUM_100x100_400x400);
-		LayoutComponent compI = createComponentFromDictionary("I", ComponentDictionary.TEST_BOX_LARGE_200x200_600x600);
-		LayoutComponent compJ = createComponentFromDictionary("J", ComponentDictionary.TEST_BOX_LARGE_200x200_600x600);
-		LayoutComponent compK = createComponentFromDictionary("K", ComponentDictionary.TEST_BOX_SMALL_100x100_200x200);
-		LayoutComponent compL = createComponentFromDictionary("L", ComponentDictionary.TEST_BOX_SMALL_100x100_200x200);
+		LayoutComponent compA = createComponentFromDictionary("A", new JLabel(), ComponentDimensionEnum.SMALL_SMALL);
+		LayoutComponent compB = createComponentFromDictionary("B", new JButton(), ComponentDimensionEnum.LARGE_LARGE);
+		LayoutComponent compC = createComponentFromDictionary("C", new JButton(), ComponentDimensionEnum.SMALL_SLACK_SMALL_SLACK);
+		LayoutComponent compD = createComponentFromDictionary("D", new JTextField(), ComponentDimensionEnum.LARGE_SLACK_LARGE_SLACK);
+		LayoutComponent compE = createComponentFromDictionary("E", new JTextArea(), ComponentDimensionEnum.SMALL_LARGE_SLACK);
+		LayoutComponent compF = createComponentFromDictionary("F", new JComboBox<String>(), ComponentDimensionEnum.SMALL_LARGE_SLACK);
+		LayoutComponent compG = createComponentFromDictionary("G", new JRadioButton(), ComponentDimensionEnum.LARGE_SLACK_SMALL);
+		LayoutComponent compH = createComponentFromDictionary("H", new JLabel(), ComponentDimensionEnum.SMALL_SLACK_SMALL_SLACK);
+		LayoutComponent compI = createComponentFromDictionary("I", new JButton(), ComponentDimensionEnum.LARGE_SLACK_LARGE_SLACK);
+		LayoutComponent compJ = createComponentFromDictionary("J", new JButton(), ComponentDimensionEnum.LARGE_SLACK_LARGE_SLACK);
+		LayoutComponent compK = createComponentFromDictionary("K", new JTextField(), ComponentDimensionEnum.SMALL_SMALL);
+		LayoutComponent compL = createComponentFromDictionary("L", new JTextArea(), ComponentDimensionEnum.SMALL_SMALL);
 
-		LayoutContainer contY = new LayoutContainer("Y");
-		contY.addComponent(compE);
-		contY.addComponent(compF);
-
-		LayoutContainer contT = new LayoutContainer("T");
-		contT.addComponent(compK);
-		contT.addComponent(compL);
-
-		LayoutContainer contR = new LayoutContainer("R");
-		contR.addComponent(contT);
-		contR.addComponent(compJ);
-
-		LayoutContainer contN = new LayoutContainer("N");
-		contN.addComponent(compG);
-		contN.addComponent(compH);
-		contN.addComponent(compI);
-
-		LayoutContainer contZ = new LayoutContainer("Z");
-		contZ.addComponent(contY);
-		contZ.addComponent(contR);
-		contZ.addComponent(contN);
-
-		LayoutContainer contX = new LayoutContainer("X");
-		contX.addComponent(compA);
-		contX.addComponent(compB);
-		contX.addComponent(compC);
-
-		LayoutContainer contM = new LayoutContainer("M");
-		contM.addComponent(contZ);
-		contM.addComponent(contX);
-		contM.addComponent(compD);
-
-		return contM;
+		LayoutContainer contY = new LayoutContainer("Y", compE, compF);
+		LayoutContainer contT = new LayoutContainer("T", compK, compL);
+		LayoutContainer contR = new LayoutContainer("R", contT, compJ);
+		LayoutContainer contN = new LayoutContainer("N", compG, compH, compI);
+		LayoutContainer contZ = new LayoutContainer("Z", contY, contR, contN);
+		LayoutContainer contX = new LayoutContainer("X", compA, compB, compC);
+		return new LayoutContainer("M", contZ, contX, compD);
 	}
 
 	private static LayoutContainer dictionaryTestCaseWithComponents1 () {
-		LayoutComponent compA = createComponentFromDictionary("A", ComponentDictionary.LABEL_TALL);
-		LayoutComponent compB = createComponentFromDictionary("B", ComponentDictionary.TEXT_FIELD_MEDIUM);
-		LayoutComponent compC = createComponentFromDictionary("C", ComponentDictionary.LABEL_TALL);
-		LayoutComponent compD = createComponentFromDictionary("D", ComponentDictionary.TEXT_FIELD_MEDIUM);
-		LayoutComponent compE = createComponentFromDictionary("E", ComponentDictionary.LABEL_TALL);
-		LayoutComponent compF = createComponentFromDictionary("F", ComponentDictionary.COMBO_BOX_MEDIUM);
-		LayoutComponent compG = createComponentFromDictionary("G", ComponentDictionary.LABEL_TALL);
-		LayoutComponent compH = createComponentFromDictionary("H", ComponentDictionary.TEXT_FIELD_MEDIUM);
-		LayoutComponent compI = createComponentFromDictionary("I", ComponentDictionary.BUTTON_WIDE);
-		LayoutComponent compJ = createComponentFromDictionary("J", ComponentDictionary.BUTTON_WIDE);
+		LayoutComponent compA = createComponentFromDictionary("A", new JLabel(), ComponentDimensionEnum.SMALLER_TINY);
+		LayoutComponent compB = createComponentFromDictionary("B", new JTextField(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+		LayoutComponent compC = createComponentFromDictionary("C", new JComboBox<>(), ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutComponent compD = createComponentFromDictionary("D", new JTextField(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+		LayoutComponent compE = createComponentFromDictionary("E", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL_SLACK);
+		LayoutComponent compF = createComponentFromDictionary("F", new JComboBox<>(), ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutComponent compG = createComponentFromDictionary("G", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL_SLACK);
+		LayoutComponent compH = createComponentFromDictionary("H", new JTextField(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+		LayoutComponent compI = createComponentFromDictionary("I", new JButton(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+		LayoutComponent compJ = createComponentFromDictionary("J", new JButton(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+		LayoutComponent compK = createComponentFromDictionary("K", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL_SLACK);
+		LayoutComponent compL = createComponentFromDictionary("L", new JTextField(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+		LayoutComponent compM = createComponentFromDictionary("M", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL_SLACK);
+		LayoutComponent compN = createComponentFromDictionary("N", new JTextField(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+		LayoutComponent compO = createComponentFromDictionary("O", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL_SLACK);
+		LayoutComponent compP = createComponentFromDictionary("P", new JComboBox<>(), ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutComponent compQ = createComponentFromDictionary("Q", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL_SLACK);
+		LayoutComponent compR = createComponentFromDictionary("R", new JTextField(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+		LayoutComponent compS = createComponentFromDictionary("S", new JButton(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+		LayoutComponent compT = createComponentFromDictionary("T", new JButton(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+
+		LayoutContainer cont1 = new LayoutContainer("1", compA, compB, compC);
+		LayoutContainer cont2 = new LayoutContainer("2", compE, compD);
+		LayoutContainer cont3 = new LayoutContainer("3", cont1, cont2);
+		LayoutContainer cont4 = new LayoutContainer("4", compG, compF);
+		LayoutContainer cont5 = new LayoutContainer("5", compH, compI);
+		LayoutContainer cont6 = new LayoutContainer("6", cont4, cont5, compJ);
+		LayoutContainer cont7 = new LayoutContainer("7", cont3, cont6);
+		LayoutContainer cont8 = new LayoutContainer("8", compK, compL);
+		LayoutContainer cont9 = new LayoutContainer("9", compM, compN);
+		LayoutContainer cont10 = new LayoutContainer("10", compO, compP);
+		LayoutContainer cont11 = new LayoutContainer("11", cont8, cont9, cont10);
+		LayoutContainer cont12 = new LayoutContainer("12", compQ, compR);
+		LayoutContainer cont13 = new LayoutContainer("13", cont12, compS, compT);
+		return new LayoutContainer("Root", cont7, cont11, cont13);
+	}
+
+	private static LayoutContainer dictionaryTestCaseWithComponents2 () {
+		LayoutComponent compA = createComponentFromDictionary("A", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL_SLACK);
+		LayoutComponent compB = createComponentFromDictionary("B", new JTextField(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+		LayoutComponent compC = createComponentFromDictionary("C", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL_SLACK);
+		LayoutComponent compD = createComponentFromDictionary("D", new JTextField(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+		LayoutComponent compE = createComponentFromDictionary("E", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL_SLACK);
+		LayoutComponent compF = createComponentFromDictionary("F", new JComboBox<>(), ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutComponent compG = createComponentFromDictionary("G", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL_SLACK);
+		LayoutComponent compH = createComponentFromDictionary("H", new JTextField(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+		LayoutComponent compI = createComponentFromDictionary("I", new JButton(), ComponentDimensionEnum.SMALL_SLACK_TINY);
+		LayoutComponent compJ = createComponentFromDictionary("J", new JButton(), ComponentDimensionEnum.SMALL_SLACK_TINY);
 
 		// first line
-		LayoutContainer contY = new LayoutContainer("Y");
-		contY.addComponent(compA);
-		contY.addComponent(compB);
-
+		LayoutContainer contY = new LayoutContainer("Y", compA, compB);
 		// second line
-		LayoutContainer contT = new LayoutContainer("T");
-		contT.addComponent(compC);
-		contT.addComponent(compD);
-
+		LayoutContainer contT = new LayoutContainer("T", compC, compD);
 		// third line
-		LayoutContainer contR = new LayoutContainer("R");
-		contR.addComponent(compE);
-		contR.addComponent(compF);
-
+		LayoutContainer contR = new LayoutContainer("R", compE, compF);
 		// fourth line
-		LayoutContainer contN = new LayoutContainer("N");
-		contN.addComponent(compG);
-		contN.addComponent(compH);
-
+		LayoutContainer contN = new LayoutContainer("N", compG, compH);
 		// buttons
-		LayoutContainer contZ = new LayoutContainer("Z");
-		contZ.addComponent(compI);
-		contZ.addComponent(compJ);
-
+		LayoutContainer contZ = new LayoutContainer("Z", compI, compJ);
 		// first two lines
-		LayoutContainer contX = new LayoutContainer("X");
-		contX.addComponent(contY);
-		contX.addComponent(contT);
-
+		LayoutContainer contX = new LayoutContainer("X", contY, contT);
 		// last two lines
-		LayoutContainer contQ = new LayoutContainer("Q");
-		contQ.addComponent(contR);
-		contQ.addComponent(contN);
-
+		LayoutContainer contQ = new LayoutContainer("Q", contR, contN);
 		// all lines
-		LayoutContainer contU = new LayoutContainer("U");
-		contU.addComponent(contX);
-		contU.addComponent(contQ);
-
+		LayoutContainer contU = new LayoutContainer("U", contX, contQ);
 		// all lines and buttons
-		LayoutContainer contM = new LayoutContainer("M");
-		contM.addComponent(contU);
-		contM.addComponent(contZ);
+		return new LayoutContainer("M", contU, contZ);
+	}
 
-		return contM;
+	public static void createComponentsOfTree (JPanel panel) {
+		jComponentMap.forEach((lComponent, jComponent) -> {
+			jComponent.setBounds(lComponent.getAssignedX(), lComponent.getAssignedY(),
+					lComponent.getAssignedWidth(), lComponent.getAssignedHeight());
+			jComponent.setToolTipText(lComponent.getLabel());
+			if (jComponent instanceof JLabel) {
+				((JLabel) jComponent).setText(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
+			} else if (jComponent instanceof JComboBox) {
+				((JComboBox) jComponent).addItem(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
+				((JComboBox) jComponent).addItem(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
+				((JComboBox) jComponent).addItem(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
+			} else if (jComponent instanceof JButton) {
+				((JButton) jComponent).setText(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
+			} else {
+				// Custom made component
+			}
+			panel.add(jComponent);
+		});
 	}
 }
