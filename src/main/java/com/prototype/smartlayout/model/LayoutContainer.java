@@ -16,7 +16,7 @@ import lombok.extern.log4j.Log4j;
 public class LayoutContainer implements Layoutable {
 
 	private final Vector<Layoutable> children;
-	private String id; // TODO: Remove after debugging
+	private String id;
 	private int assignedX;
 	private int assignedY;
 	private int assignedWidth;
@@ -24,7 +24,7 @@ public class LayoutContainer implements Layoutable {
 	private Vector<WidthHeightRange> memo = null;
 
 	public LayoutContainer (String id) {
-		this.id = id; // TODO: Remove after debugging
+		this.id = id;
 		children = new Vector<>();
 	}
 
@@ -270,9 +270,9 @@ public class LayoutContainer implements Layoutable {
 			// Balance min
 //			feasible = strategyFair(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues);
 			// Balance max
-			feasible = strategyFair(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
+//			feasible = strategyFair(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 
-//			feasible = strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
+			feasible = strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 		} else {
 			log.debug("Shouldn't be here - Probably infeasible layout.");
 		}

@@ -1,22 +1,14 @@
 package com.prototype.smartlayout;
 
 import com.prototype.smartlayout.listeners.KeyInputHandler;
-import com.prototype.smartlayout.model.LayoutComponent;
 import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.Layoutable;
 import com.prototype.smartlayout.model.WidthHeightRange;
-import com.prototype.smartlayout.utils.MockUtils;
 import com.prototype.smartlayout.utils.TestCaseUtils;
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Insets;
-import java.awt.Stroke;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
@@ -25,17 +17,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -57,7 +46,6 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	private JComboBox comboBox;
 	private List<Color> colorList = new ArrayList<>();
 	private Layoutable root;
-	private BufferedImage buffer;
 	private Vector<WidthHeightRange> finalLayoutCases;
 
 	private SmartLayout () {
@@ -90,14 +78,55 @@ public class SmartLayout extends JFrame implements ComponentListener {
 
 			@Override
 			public void keyPressed (KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					// Draw the selected layout
-					for (WidthHeightRange finalLayoutCase : finalLayoutCases) {
-						if (finalLayoutCase.toString().equals(comboBox.getSelectedItem().toString())) {
-							root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCase);
-							log.debug(finalLayoutCase);
-							resizeComponents();
+				int keyCode = e.getKeyCode();
+				switch (keyCode) {
+					case KeyEvent.VK_ENTER:
+						for (WidthHeightRange finalLayoutCase : finalLayoutCases) {
+							if (finalLayoutCase.toString().equals(comboBox.getSelectedItem().toString())) {
+								root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), finalLayoutCase);
+								log.debug(finalLayoutCase);
+								log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
+								setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 75);
+								panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
+								resizeComponents();
+								break;
+							}
 						}
+						break;
+					case KeyEvent.VK_LEFT:
+						// handle left
+						getPrevious(comboBox.getSelectedIndex());
+						break;
+					case KeyEvent.VK_RIGHT:
+						// handle right
+						getNext(comboBox.getSelectedIndex());
+						break;
+				}
+			}
+
+			private void getNext (int selectedIndex) {
+				if (selectedIndex < 0 || selectedIndex + 1 == comboBox.getItemCount()) {
+					return;
+				}
+				layoutAfterComboBoxArrowNavigation(selectedIndex + 1);
+				comboBox.setSelectedIndex(selectedIndex + 1);
+			}
+
+			private void getPrevious (int selectedIndex) {
+				if (selectedIndex <= 0) {
+					return;
+				}
+				layoutAfterComboBoxArrowNavigation(selectedIndex - 1);
+				comboBox.setSelectedIndex(selectedIndex - 1);
+			}
+
+			private void layoutAfterComboBoxArrowNavigation (int selectedIndex) {
+				for (WidthHeightRange finalLayoutCase : finalLayoutCases) {
+					if (finalLayoutCase.toString().equals(comboBox.getItemAt(selectedIndex).toString())) {
+						root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), finalLayoutCase);
+						log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
+						resizeComponents();
+						break;
 					}
 				}
 			}
