@@ -5,6 +5,7 @@ import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.WidthHeightRange;
 import com.prototype.smartlayout.model.enums.ComponentDimensionEnum;
 import com.prototype.smartlayout.model.enums.WidthHeightRangeEnum;
+import com.prototype.smartlayout.templates.LayoutContainerTemplates;
 import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -49,8 +50,10 @@ public class TestCaseUtils {
 			case 4:
 				return dictionaryTestCaseWithComponents1();
 			case 5:
-			default:
 				return dictionaryTestCaseWithComponents2();
+			case 6:
+			default:
+				return schengenVisaApplicationForm();
 		}
 	}
 
@@ -202,19 +205,46 @@ public class TestCaseUtils {
 		return new LayoutContainer("M", contU, contZ);
 	}
 
+	private static LayoutContainer schengenVisaApplicationForm () {
+		LayoutContainer surnameField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname Field", "Surname", ComponentDimensionEnum.TINY_SMALL_SLACK, "Enter Surname", ComponentDimensionEnum.TINY_LARGE_SLACK);
+		LayoutContainer surnameAtBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname At Birth Field", "Surname at Birth", ComponentDimensionEnum.TINY_SMALL_SLACK, "Enter Surname at Birth", ComponentDimensionEnum.TINY_LARGE_SLACK);
+		LayoutContainer firstNameField = LayoutContainerTemplates.createLabelTextFieldContainer("First Name Field", "First Name", ComponentDimensionEnum.SMALL_SMALL_SLACK, "Enter First Name", ComponentDimensionEnum.SMALL_LARGE_SLACK);
+
+		LayoutContainer leftUpperGroup = new LayoutContainer("Left Upper Group", surnameField, surnameAtBirthField, firstNameField);
+
+		LayoutComponent noticeLabel = createComponentFromDictionary("FOR OFFICIAL USE ONLY", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL);
+		LayoutComponent dateOfApplicationLabel = createComponentFromDictionary("Date of Application", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL);
+		LayoutComponent applicationNumberLabel = createComponentFromDictionary("Application number", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL);
+		LayoutContainer rightUpperGroup = new LayoutContainer("Right Upper Group", noticeLabel, dateOfApplicationLabel, applicationNumberLabel);
+
+		LayoutContainer birthDateField = LayoutContainerTemplates.createLabelTextFieldContainer("Birth Date Field", "Date of Birth (day-month-year)", ComponentDimensionEnum.SMALL_TINY, "Enter Birth Date", ComponentDimensionEnum.LARGE_SLACK_SMALL);
+
+		LayoutContainer placeOfBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Place of Birth Field", "Place of Birth", ComponentDimensionEnum.TINY_TINY, "Enter Place of Birth", ComponentDimensionEnum.TINY_TINY);
+		LayoutContainer countryOfBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Country of Birth Field", "Country of Birth", ComponentDimensionEnum.TINY_TINY, "Enter Country of Birth", ComponentDimensionEnum.TINY_SMALLER);
+		LayoutContainer birthPlaceGroup = new LayoutContainer("Birth Place Group", placeOfBirthField, countryOfBirthField);
+
+		LayoutComponent nationalityLabel = createComponentFromDictionary("Current nationality: ", new JLabel(), ComponentDimensionEnum.TINY_TINY);
+		LayoutComponent nationalityAtBirthLabel = createComponentFromDictionary("Nationality at birth,\nif different", new JLabel(), ComponentDimensionEnum.TINY_SMALLER);
+		LayoutComponent otherNationalitiesLabel = createComponentFromDictionary("Other nationalities: ", new JLabel(), ComponentDimensionEnum.TINY_TINY);
+		LayoutContainer nationalityGroup = new LayoutContainer("Nationality Group", nationalityLabel, nationalityAtBirthLabel, otherNationalitiesLabel);
+		LayoutContainer leftUpperMiddleGroup = new LayoutContainer("Left Upper Middle Group", birthDateField, birthPlaceGroup, nationalityGroup);
+
+		return new LayoutContainer("M", leftUpperGroup, leftUpperMiddleGroup, rightUpperGroup);
+	}
+
 	public static void createComponentsOfTree (JPanel panel) {
 		jComponentMap.forEach((lComponent, jComponent) -> {
 			jComponent.setBounds(lComponent.getAssignedX(), lComponent.getAssignedY(),
 					lComponent.getAssignedWidth(), lComponent.getAssignedHeight());
 			jComponent.setToolTipText(lComponent.getLabel());
 			if (jComponent instanceof JLabel) {
-				((JLabel) jComponent).setText(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
+				((JLabel) jComponent).setText(lComponent.getLabel()/*MockUtils.generateString((int) (Math.random() * 10.0) + 5)*/);
 			} else if (jComponent instanceof JComboBox) {
-				((JComboBox) jComponent).addItem(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
-				((JComboBox) jComponent).addItem(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
-				((JComboBox) jComponent).addItem(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
+				((JComboBox) jComponent).addItem(lComponent.getLabel()/*MockUtils.generateString((int) (Math.random() * 10.0) + 5)*/);
+				((JComboBox) jComponent).addItem("Item 2"/*MockUtils.generateString((int) (Math.random() * 10.0) + 5)*/);
+				((JComboBox) jComponent).addItem("Item 3"/*MockUtils.generateString((int) (Math.random() * 10.0) + 5)*/);
 			} else if (jComponent instanceof JButton) {
-				((JButton) jComponent).setText(MockUtils.generateString((int) (Math.random() * 10.0) + 5));
+				((JButton) jComponent).setText(lComponent.getLabel()/*MockUtils.generateString((int) (Math.random() * 10.0) + 5)*/);
 			} else {
 				// Custom made component
 			}

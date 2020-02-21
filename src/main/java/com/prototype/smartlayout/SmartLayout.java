@@ -157,14 +157,14 @@ public class SmartLayout extends JFrame implements ComponentListener {
 			root.setAssignedHeight(Integer.parseInt(txtnum2.getText()));
 			getFinalLayoutCases();
 			root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getFeasibleLayout(finalLayoutCases));
-			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 75);
+			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 76);
 			log.debug(getFeasibleLayout(finalLayoutCases));
 			resizeComponents();
 		});
 		topPanel.add(button);
 		outerPanel.add(panel, BorderLayout.CENTER);
 		// give the test number that you want to execute
-		root = TestCaseUtils.executeTest(4);
+		root = TestCaseUtils.executeTest(6);
 		TestCaseUtils.createComponentsOfTree(panel);
 		outerPanel.add(topPanel, BorderLayout.PAGE_START);
 

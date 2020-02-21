@@ -221,7 +221,7 @@ public class LayoutContainer implements Layoutable {
 
 	@Override
 	public boolean layout (int x, int y, int w, int h, WidthHeightRange whr) {
-		if (whr.getMinHeight() > h && whr.getMaxHeight() < h && whr.getMinWidth() > w && whr.getMaxWidth() < w) {
+		if (whr == null || (whr.getMinHeight() > h && whr.getMaxHeight() < h && whr.getMinWidth() > w && whr.getMaxWidth() < w)) {
 			return false;
 		}
 		// This is the main method that does the computation of layout
