@@ -192,7 +192,17 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		TestCaseUtils.jComponentMap.forEach((key, ignored) -> colorList.add(new Color(100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100))));
 
 		((LayoutContainer) root).clearMemoization();
+		long startTime = System.nanoTime();
 		finalLayoutCases = root.getRanges();
+		long elapsedTime = System.nanoTime() - startTime;
+		log.debug("getRanges Execution time in nanosecond: " + elapsedTime);
+		log.debug("getRanges Execution time in microsecond: " + elapsedTime/1000);
+
+		startTime = System.nanoTime();
+		finalLayoutCases = root.getRanges();
+		elapsedTime = System.nanoTime() - startTime;
+		log.debug("getRanges memoization time in nanosecond: " + elapsedTime);
+		log.debug("getRanges memoization time in microsecond: " + elapsedTime/1000);
 		log.debug(finalLayoutCases);
 		root.layout(0, 0, 800, 300, finalLayoutCases.get(0));
 	}
@@ -204,8 +214,12 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		}
 		setResizeOnRoot();
 		getFinalLayoutCases();
+		long startTime = System.nanoTime();
 		this.root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), getFeasibleLayout(feasibleLayouts));
-		log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
+		long elapsedTime = System.nanoTime() - startTime;
+		log.debug("Layout Execution time in nanosecond: " + elapsedTime);
+		log.debug("Layout Execution time in microsecond: " + elapsedTime/1000);
+//		log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
 
 		panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
 		txtnum1.setText(root.getAssignedWidth() + "");

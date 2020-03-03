@@ -7,7 +7,9 @@ import com.prototype.smartlayout.model.enums.ComponentDimensionEnum;
 import com.prototype.smartlayout.model.enums.WidthHeightRangeEnum;
 import com.prototype.smartlayout.templates.LayoutContainerTemplates;
 import java.util.Map;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -15,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 public class TestCaseUtils {
 
@@ -206,30 +209,61 @@ public class TestCaseUtils {
 	}
 
 	private static LayoutContainer schengenVisaApplicationForm () {
-		LayoutContainer surnameField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname Field", "Surname", ComponentDimensionEnum.TINY_SMALL_SLACK, "Enter Surname", ComponentDimensionEnum.TINY_LARGE_SLACK);
-		LayoutContainer surnameAtBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname At Birth Field", "Surname at Birth", ComponentDimensionEnum.TINY_SMALL_SLACK, "Enter Surname at Birth", ComponentDimensionEnum.TINY_LARGE_SLACK);
-		LayoutContainer firstNameField = LayoutContainerTemplates.createLabelTextFieldContainer("First Name Field", "First Name", ComponentDimensionEnum.SMALL_SMALL_SLACK, "Enter First Name", ComponentDimensionEnum.SMALL_LARGE_SLACK);
+		LayoutContainer surnameField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname Field", "Surname", ComponentDimensionEnum.SMALL_TINY, "Enter Surname", ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutContainer surnameAtBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname At Birth Field", "Surname at Birth", ComponentDimensionEnum.SMALL_TINY, "Enter Surname at Birth", ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutContainer firstNameField = LayoutContainerTemplates.createLabelTextFieldContainer("First Name Field", "First Name", ComponentDimensionEnum.SMALL_TINY, "Enter First Name", ComponentDimensionEnum.MEDIUM_TINY);
 
 		LayoutContainer leftUpperGroup = new LayoutContainer("Left Upper Group", surnameField, surnameAtBirthField, firstNameField);
 
-		LayoutComponent noticeLabel = createComponentFromDictionary("FOR OFFICIAL USE ONLY", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL);
-		LayoutComponent dateOfApplicationLabel = createComponentFromDictionary("Date of Application", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL);
-		LayoutComponent applicationNumberLabel = createComponentFromDictionary("Application number", new JLabel(), ComponentDimensionEnum.SMALLER_SMALL);
-		LayoutContainer rightUpperGroup = new LayoutContainer("Right Upper Group", noticeLabel, dateOfApplicationLabel, applicationNumberLabel);
+		LayoutComponent noticeLabel = createComponentFromDictionary("FOR OFFICIAL USE ONLY", new JLabel(), ComponentDimensionEnum.MEDIUM_SMALLER);
+		LayoutContainer dateOfApplicationField = LayoutContainerTemplates.createLabelTextFieldContainer("Date of Application Field", "Date of Application", ComponentDimensionEnum.MEDIUM_SMALLER, "Enter Date of Application", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer applicationNumberField = LayoutContainerTemplates.createLabelTextFieldContainer("Application Number Field", "Application Number", ComponentDimensionEnum.MEDIUM_SMALLER, "Enter Application Number", ComponentDimensionEnum.SMALL_SMALLER);
 
-		LayoutContainer birthDateField = LayoutContainerTemplates.createLabelTextFieldContainer("Birth Date Field", "Date of Birth (day-month-year)", ComponentDimensionEnum.SMALL_TINY, "Enter Birth Date", ComponentDimensionEnum.LARGE_SLACK_SMALL);
+		LayoutContainer rightUpperGroup = new LayoutContainer("Right Upper Group", noticeLabel, dateOfApplicationField, applicationNumberField);
 
-		LayoutContainer placeOfBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Place of Birth Field", "Place of Birth", ComponentDimensionEnum.TINY_TINY, "Enter Place of Birth", ComponentDimensionEnum.TINY_TINY);
-		LayoutContainer countryOfBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Country of Birth Field", "Country of Birth", ComponentDimensionEnum.TINY_TINY, "Enter Country of Birth", ComponentDimensionEnum.TINY_SMALLER);
+		LayoutContainer birthDateField = LayoutContainerTemplates.createLabelTextFieldContainer("Birth Date Field", "<html>Date of Birth<br/>(dd-mm-yyyy)</html>", ComponentDimensionEnum.SMALL_SMALLER, "Enter Birth Date", ComponentDimensionEnum.SMALL_SMALLER);
+
+		LayoutContainer placeOfBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Place of Birth Field", "Place of Birth", ComponentDimensionEnum.SMALL_SMALLER, "Enter Place of Birth", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer countryOfBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Country of Birth Field", "Country of Birth", ComponentDimensionEnum.SMALL_SMALLER, "Enter Country of Birth", ComponentDimensionEnum.SMALL_SMALLER);
 		LayoutContainer birthPlaceGroup = new LayoutContainer("Birth Place Group", placeOfBirthField, countryOfBirthField);
 
-		LayoutComponent nationalityLabel = createComponentFromDictionary("Current nationality: ", new JLabel(), ComponentDimensionEnum.TINY_TINY);
-		LayoutComponent nationalityAtBirthLabel = createComponentFromDictionary("Nationality at birth,\nif different", new JLabel(), ComponentDimensionEnum.TINY_SMALLER);
-		LayoutComponent otherNationalitiesLabel = createComponentFromDictionary("Other nationalities: ", new JLabel(), ComponentDimensionEnum.TINY_TINY);
-		LayoutContainer nationalityGroup = new LayoutContainer("Nationality Group", nationalityLabel, nationalityAtBirthLabel, otherNationalitiesLabel);
+		LayoutContainer nationalityField = LayoutContainerTemplates.createLabelTextFieldContainer("Current Nationality Field", "Current Nationality: ", ComponentDimensionEnum.MEDIUM_TINY, "Enter Current Nationality", ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutContainer nationalityAtBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Nationality at birth, if different", "Nationality at Birth: ", ComponentDimensionEnum.MEDIUM_TINY, "Enter Nationality at Birth", ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutContainer otherNationalitiesField = LayoutContainerTemplates.createLabelTextFieldContainer("Other Nationalities Field", "Other Nationalities: ", ComponentDimensionEnum.MEDIUM_TINY, "Enter Other nationalities", ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutContainer nationalityGroup = new LayoutContainer("Nationality Group", nationalityField, nationalityAtBirthField, otherNationalitiesField);
+
 		LayoutContainer leftUpperMiddleGroup = new LayoutContainer("Left Upper Middle Group", birthDateField, birthPlaceGroup, nationalityGroup);
 
-		return new LayoutContainer("M", leftUpperGroup, leftUpperMiddleGroup, rightUpperGroup);
+		LayoutComponent genderLabel = createComponentFromDictionary("Sex: ", new JLabel(), ComponentDimensionEnum.SMALL_SMALLER);
+		ButtonGroup genderButtonGroup = new ButtonGroup();
+		LayoutContainer genderMaleCheckbox = LayoutContainerTemplates.createRadioButtonLabelContainer("Gender Male", genderButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Male", ComponentDimensionEnum.SMALLER_TINY);
+		LayoutContainer genderFemaleCheckbox = LayoutContainerTemplates.createRadioButtonLabelContainer("Gender Female", genderButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Female", ComponentDimensionEnum.SMALLER_TINY);
+		LayoutContainer genderChoicesGroup = new LayoutContainer("Gender Choices Group", genderMaleCheckbox, genderFemaleCheckbox);
+
+		LayoutContainer genderGroup = new LayoutContainer("Gender Group", genderLabel, genderChoicesGroup);
+
+		LayoutComponent civilStatusLabel = createComponentFromDictionary("Civil Status: ", new JLabel(), ComponentDimensionEnum.SMALL_SMALLER);
+		ButtonGroup civilStatusButtonGroup = new ButtonGroup();
+		LayoutContainer singleRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Single", civilStatusButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Single", ComponentDimensionEnum.SMALL_TINY);
+		LayoutContainer marriedRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Married", civilStatusButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Married", ComponentDimensionEnum.SMALL_TINY);
+		LayoutContainer divorcedRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Divorced", civilStatusButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Divorced", ComponentDimensionEnum.SMALL_TINY);
+		LayoutContainer seperatedRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Seperated", civilStatusButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Seperated", ComponentDimensionEnum.SMALL_TINY);
+		LayoutContainer civilStatusChoicesGroup = new LayoutContainer("Civil Status Choices Group", singleRadioButton, marriedRadioButton, divorcedRadioButton, seperatedRadioButton);
+
+		LayoutContainer civilStatusGroup = new LayoutContainer("Civil Status Group", civilStatusLabel, civilStatusChoicesGroup);
+
+		LayoutComponent lodgedLabel = createComponentFromDictionary("Application lodged at: ", new JLabel(), ComponentDimensionEnum.MEDIUM_TINY);
+		ButtonGroup lodgePlaceButtonGroup = new ButtonGroup();
+		LayoutContainer embassyRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Embassy", lodgePlaceButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Embassy", ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutContainer serviceProviderRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Service Provider", lodgePlaceButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Service Provider", ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutContainer commercialIntermediaryRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Commercial Intermediary", lodgePlaceButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Commercial Intermediary", ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutContainer borderRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Border", lodgePlaceButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Border", ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutContainer otherRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Other", lodgePlaceButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Other", ComponentDimensionEnum.MEDIUM_TINY);
+		LayoutContainer lodgePlaceChoicesGroup = new LayoutContainer("Lodge Place Choices Group", embassyRadioButton, serviceProviderRadioButton, commercialIntermediaryRadioButton, borderRadioButton, otherRadioButton);
+
+		LayoutContainer lodgedAtGroup = new LayoutContainer("Lodged At Group", lodgedLabel, lodgePlaceChoicesGroup);
+
+		return new LayoutContainer("M", leftUpperGroup, leftUpperMiddleGroup, genderGroup, civilStatusGroup, rightUpperGroup, lodgedAtGroup);
 	}
 
 	public static void createComponentsOfTree (JPanel panel) {
@@ -243,6 +277,11 @@ public class TestCaseUtils {
 				((JComboBox) jComponent).addItem(lComponent.getLabel()/*MockUtils.generateString((int) (Math.random() * 10.0) + 5)*/);
 				((JComboBox) jComponent).addItem("Item 2"/*MockUtils.generateString((int) (Math.random() * 10.0) + 5)*/);
 				((JComboBox) jComponent).addItem("Item 3"/*MockUtils.generateString((int) (Math.random() * 10.0) + 5)*/);
+			} else if (jComponent instanceof JCheckBox) {
+				((JCheckBox) jComponent).setText(lComponent.getLabel()/*MockUtils.generateString((int) (Math.random() * 10.0) + 5)*/);
+			} else if (jComponent instanceof JRadioButton) {
+				((JRadioButton) jComponent).setText(lComponent.getLabel()/*MockUtils.generateString((int) (Math.random() * 10.0) + 5)*/);
+				((JRadioButton) jComponent).setHorizontalAlignment(SwingConstants.CENTER);
 			} else if (jComponent instanceof JButton) {
 				((JButton) jComponent).setText(lComponent.getLabel()/*MockUtils.generateString((int) (Math.random() * 10.0) + 5)*/);
 			} else {

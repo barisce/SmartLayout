@@ -2,15 +2,15 @@ package com.prototype.smartlayout.model.enums;
 
 public enum SizeEnum {
 	TINY(20, 50),
-	SMALLER(50, 100),
-	SMALL(100, 200),
-	SMALL_SLACK(50, 300),
-	MEDIUM(200, 300),
-	LARGE_SLACK(300, 900),
-	LARGE(300, 400),
-	LARGER(400, 600),
-	HUGE(600, 900),
-	GIGANTIC(900, 2000);
+	SMALLER(40, 110),
+	SMALL(90, 210),
+	SMALL_SLACK(40, 310),
+	MEDIUM(150, 310),
+	LARGE_SLACK(190, 910),
+	LARGE(290, 410),
+	LARGER(590, 610),
+	HUGE(590, 910),
+	GIGANTIC(890, 2010);
 	public final int min;
 	public final int max;
 
