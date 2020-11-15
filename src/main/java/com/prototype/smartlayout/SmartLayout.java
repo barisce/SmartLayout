@@ -157,11 +157,11 @@ public class SmartLayout extends JFrame {
 		button.addActionListener(e -> {
 			root.setAssignedWidth(Integer.parseInt(txtnum1.getText()) + 1);
 			root.setAssignedHeight(Integer.parseInt(txtnum2.getText()) - 1);
-			getFinalLayoutCases();
-			root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getAestheticLayout(feasibleLayouts));
+//			getFinalLayoutCases();
+//			root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getAestheticLayout(feasibleLayouts));
 			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 76);
-			log.debug(getAestheticLayout(feasibleLayouts));
-			resizeComponents();
+//			log.debug(getAestheticLayout(feasibleLayouts));
+//			resizeComponents();
 		});
 		topPanel.add(button);
 		outerPanel.add(panel, BorderLayout.CENTER);
@@ -178,8 +178,7 @@ public class SmartLayout extends JFrame {
 
 		SmartLayout app = new SmartLayout();
 		app.run();
-//		app.setSize(app.root.getAssignedWidth() + 50, app.root.getAssignedHeight() + 50);
-		app.setSize(1280, 720);
+		app.setSize(800, 400);
 	}
 
 	private static void resizeComponents () {
@@ -206,7 +205,7 @@ public class SmartLayout extends JFrame {
 				long startTime = System.nanoTime();
 				root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), finalLayoutCase);
 				long elapsedTime = System.nanoTime() - startTime;
-				log.debug("\nlayout Execution time in nanosecond: " + elapsedTime + "\nlayout Execution time in microsecond: " + (elapsedTime / 1000) +
+				log.debug("\nCombo changed layout Execution time in nanosecond: " + elapsedTime + "\nlayout Execution time in microsecond: " + (elapsedTime / 1000) + "\nTotal tree size : " + feasibleLayouts.size() +
 						"\nRoot Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
 				resizeComponents();
 				break;
@@ -235,7 +234,7 @@ public class SmartLayout extends JFrame {
 		log.debug("getRanges memoization time in nanosecond: " + elapsedTime);
 		log.debug("getRanges memoization time in microsecond: " + elapsedTime / 1000);
 		log.debug(finalLayoutCases);
-		root.layout(0, 0, 800, 300, finalLayoutCases.get(0));
+		root.layout(0, 0, 800, 400, finalLayoutCases.get(0));
 	}
 
 	public void frameResized () {
@@ -247,8 +246,7 @@ public class SmartLayout extends JFrame {
 		long startTime = System.nanoTime();
 		root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), getAestheticLayout(feasibleLayouts));
 		long elapsedTime = System.nanoTime() - startTime;
-		log.debug("\nLayout Execution time in nanosecond: " + elapsedTime + "\nLayout Execution time in microsecond: " + elapsedTime / 1000);
-//		log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
+		log.debug("\nFrame Resized Layout Execution time in nanosecond: " + elapsedTime + "\nLayout Execution time in microsecond: " + elapsedTime / 1000 + "\nTotal tree size : " + feasibleLayouts.size());
 
 		panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
 		txtnum1.setText(root.getAssignedWidth() + "");
@@ -278,6 +276,7 @@ public class SmartLayout extends JFrame {
 		if (layouts.isEmpty()) {
 			return null;
 		}
+		long startTime = System.nanoTime();
 		Map<Integer, Double> aestheticMeasurementMap = new HashMap<>();
 		for (int i = 0; i < layouts.size(); i++) {
 			WidthHeightRange layout = layouts.get(i);
@@ -286,6 +285,8 @@ public class SmartLayout extends JFrame {
 			aestheticMeasurementMap.put(i, aesthetics.isNaN() ? 0 : aesthetics);
 		}
 		Optional<Entry<Integer, Double>> maxEntry = aestheticMeasurementMap.entrySet().stream().max(Entry.comparingByValue());
+		long elapsedTime = System.nanoTime() - startTime;
+		log.debug("\nAesthetic Layout Execution time in nanosecond: " + elapsedTime + "\nAesthetic Execution time in millisecond: " + elapsedTime / 1000000 + "\nTotal tree size : " + feasibleLayouts.size());
 		log.info("Selected index : " + maxEntry.get().getKey() + " Selected aesthetic value : " + maxEntry.get().getValue());
 		return maxEntry.isPresent() ? layouts.get(maxEntry.get().getKey()) : layouts.get(0);
 	}

@@ -31,7 +31,9 @@ public class AestheticMeasureUtil {
 	private static final double homogeneityFactor = 1;
 	private static final double rhythmFactor = 1;
 	private static final double orderAndComplexityFactor = 1;
+
 	private static final double divisionByZeroAvoider = 0.00001;
+
 	// This is not multi thread safe
 	private static List<Double> leftAreaList = new ArrayList<>();
 	private static List<Double> rightAreaList = new ArrayList<>();

@@ -142,11 +142,16 @@ public class LayoutContainer implements Layoutable {
 					}
 				}
 
+				//==============
+				// Check if tempRAnges is empty
+				// If so, we cannot feasibly layout this container.
+				// We hould immediately stop the horizontal layout process. and also do not update vec below.
 				movingRanges.clear();
 				movingRanges.addAll(tempRanges);
 			}
 		}
 
+		// If the above check failed, do not update vec.
 		Vector<WidthHeightRange> vec = new Vector<>(movingRanges);
 
 		// Now, the VERTICAL orientation strategy
@@ -199,11 +204,14 @@ public class LayoutContainer implements Layoutable {
 					}
 				}
 
+				//==============
+				// Similaryl check feasibility and only update if feasible layouts exist
 				movingRanges.clear();
 				movingRanges.addAll(tempRanges);
 			}
 		}
 
+		// Update only if feasiblity checks returned true
 		vec.addAll(movingRanges);
 		memo = vec;
 
@@ -274,7 +282,7 @@ public class LayoutContainer implements Layoutable {
 
 			feasible = strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 		} else {
-			log.debug("Shouldn't be here - Probably infeasible layout.");
+			log.debug("Shouldn't be here - Probably infeasible layout. ID: " + this.id);
 		}
 
 		// Just check if the given boundaries match with given width & height.
@@ -440,7 +448,7 @@ public class LayoutContainer implements Layoutable {
 				}
 			}
 			if (indexOrder.length < 1) {
-				log.debug("Layout's constraints exceeds max values for components!");
+				log.trace("Layout's constraints exceeds max values for components!");
 				break;
 			}
 			if (remaining < 0) {
