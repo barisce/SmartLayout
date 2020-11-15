@@ -1,5 +1,6 @@
 package com.prototype.smartlayout;
 
+import com.prototype.smartlayout.listeners.ComponentResizeEndListener;
 import com.prototype.smartlayout.listeners.KeyInputHandler;
 import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.Layoutable;
@@ -9,8 +10,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -36,25 +37,31 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 @Log4j
-public class SmartLayout extends JFrame implements ComponentListener {
+public class SmartLayout extends JFrame {
 	private static final long serialVersionUID = 6944709955451188697L;
 	private final JPanel panel;
-	private JCheckBox showOnlyFeasibleLayouts = new JCheckBox("");
+	private final JCheckBox showOnlyFeasibleLayouts = new JCheckBox("");
+	private final JTextField txtnum1;
+	private final JTextField txtnum2;
+	private final JComboBox comboBox;
+	private final List<Color> colorList = new ArrayList<>();
 	private Vector<WidthHeightRange> feasibleLayouts = new Vector<>();
-	private JTextField txtnum1;
-	private JTextField txtnum2;
-	private JComboBox comboBox;
-	private List<Color> colorList = new ArrayList<>();
 	private Layoutable root;
 	private Vector<WidthHeightRange> finalLayoutCases;
 
 	private SmartLayout () {
 		super();
+
 		TestCaseUtils.jComponentMap = new HashMap<>();
 		root = null;
 		finalLayoutCases = null;
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		addComponentListener(this);
+		addComponentListener(new ComponentResizeEndListener() {
+			@Override
+			public void resizeTimedOut () {
+				frameResized();
+			}
+		});
 
 		JPanel outerPanel = new JPanel(new BorderLayout());
 		JPanel topPanel = new JPanel(new FlowLayout());
@@ -71,6 +78,9 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		JLabel lblCombo = new JLabel("Feasible Layouts: ");
 		topPanel.add(lblCombo);
 		comboBox = new JComboBox();
+		comboBox.setPreferredSize(new Dimension(120, 25));
+		comboBox.addItemListener(new ItemChangeListener());
+
 		comboBox.addKeyListener(new KeyListener() { // ActionListener did not work. So bound it to Enter Key
 			@Override
 			public void keyTyped (KeyEvent e) {
@@ -83,6 +93,7 @@ public class SmartLayout extends JFrame implements ComponentListener {
 					case KeyEvent.VK_ENTER:
 						for (WidthHeightRange finalLayoutCase : finalLayoutCases) {
 							if (finalLayoutCase.toString().equals(comboBox.getSelectedItem().toString())) {
+								root.setAssignedWidth(root.getAssignedWidth() + 1);
 								root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), finalLayoutCase);
 								log.debug(finalLayoutCase);
 								log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
@@ -108,7 +119,6 @@ public class SmartLayout extends JFrame implements ComponentListener {
 				if (selectedIndex < 0 || selectedIndex + 1 == comboBox.getItemCount()) {
 					return;
 				}
-				layoutAfterComboBoxArrowNavigation(selectedIndex + 1);
 				comboBox.setSelectedIndex(selectedIndex + 1);
 			}
 
@@ -116,20 +126,9 @@ public class SmartLayout extends JFrame implements ComponentListener {
 				if (selectedIndex <= 0) {
 					return;
 				}
-				layoutAfterComboBoxArrowNavigation(selectedIndex - 1);
 				comboBox.setSelectedIndex(selectedIndex - 1);
 			}
 
-			private void layoutAfterComboBoxArrowNavigation (int selectedIndex) {
-				for (WidthHeightRange finalLayoutCase : finalLayoutCases) {
-					if (finalLayoutCase.toString().equals(comboBox.getItemAt(selectedIndex).toString())) {
-						root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), finalLayoutCase);
-						log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
-						resizeComponents();
-						break;
-					}
-				}
-			}
 
 			@Override
 			public void keyReleased (KeyEvent e) {
@@ -153,8 +152,8 @@ public class SmartLayout extends JFrame implements ComponentListener {
 
 		JButton button = new JButton("Resize");
 		button.addActionListener(e -> {
-			root.setAssignedWidth(Integer.parseInt(txtnum1.getText()));
-			root.setAssignedHeight(Integer.parseInt(txtnum2.getText()));
+			root.setAssignedWidth(Integer.parseInt(txtnum1.getText()) + 1);
+			root.setAssignedHeight(Integer.parseInt(txtnum2.getText()) - 1);
 			getFinalLayoutCases();
 			root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getFeasibleLayout(finalLayoutCases));
 			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 76);
@@ -183,6 +182,39 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		app.setSize(1280, 720);
 	}
 
+	private static void resizeComponents () {
+		TestCaseUtils.jComponentMap.forEach((lComponent, jComponent) -> {
+			if (lComponent != null) {
+				jComponent.setBounds(lComponent.getAssignedX(), lComponent.getAssignedY(),
+						lComponent.getAssignedWidth(), lComponent.getAssignedHeight());
+				jComponent.setBorder(BorderFactory.createLineBorder(lComponent.isFeasible() ? Color.GREEN : Color.RED));
+				jComponent.setToolTipText(lComponent.getLabel());
+			}
+		});
+	}
+
+	/**
+	 * In this method we only need to check if the minimum values match because if the values exceed maximum we can still fit inside.
+	 */
+	private static boolean isLayoutFeasible (int w, int h, WidthHeightRange whr) {
+		return w >= whr.getMinWidth() && w <= whr.getMaxWidth() && h >= whr.getMinHeight() && h <= whr.getMaxHeight();
+	}
+
+	private void layoutAfterComboBoxChanged (int selectedIndex) {
+		for (WidthHeightRange finalLayoutCase : finalLayoutCases) {
+			if (finalLayoutCase.toString().equals(comboBox.getItemAt(selectedIndex).toString())) {
+				long startTime = System.nanoTime();
+				root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), finalLayoutCase);
+				long elapsedTime = System.nanoTime() - startTime;
+				log.debug("layout Execution time in nanosecond: " + elapsedTime);
+				log.debug("layout Execution time in microsecond: " + elapsedTime / 1000);
+				log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
+				resizeComponents();
+				break;
+			}
+		}
+	}
+
 	/**
 	 * Creates a demo layout LayoutComponent and runs the layout algorithm
 	 * on the LayoutContainer
@@ -196,46 +228,33 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		finalLayoutCases = root.getRanges();
 		long elapsedTime = System.nanoTime() - startTime;
 		log.debug("getRanges Execution time in nanosecond: " + elapsedTime);
-		log.debug("getRanges Execution time in microsecond: " + elapsedTime/1000);
+		log.debug("getRanges Execution time in microsecond: " + elapsedTime / 1000);
 
 		startTime = System.nanoTime();
 		finalLayoutCases = root.getRanges();
 		elapsedTime = System.nanoTime() - startTime;
 		log.debug("getRanges memoization time in nanosecond: " + elapsedTime);
-		log.debug("getRanges memoization time in microsecond: " + elapsedTime/1000);
+		log.debug("getRanges memoization time in microsecond: " + elapsedTime / 1000);
 		log.debug(finalLayoutCases);
 		root.layout(0, 0, 800, 300, finalLayoutCases.get(0));
 	}
 
-	@Override
-	public void componentResized (ComponentEvent componentEvent) {
+	public void frameResized () {
 		if (root == null) {
 			return;
 		}
 		setResizeOnRoot();
 		getFinalLayoutCases();
 		long startTime = System.nanoTime();
-		this.root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), getFeasibleLayout(feasibleLayouts));
+		root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), getFeasibleLayout(feasibleLayouts));
 		long elapsedTime = System.nanoTime() - startTime;
-		log.debug("Layout Execution time in nanosecond: " + elapsedTime);
-		log.debug("Layout Execution time in microsecond: " + elapsedTime/1000);
+		log.debug("\nLayout Execution time in nanosecond: " + elapsedTime + "\nLayout Execution time in microsecond: " + elapsedTime / 1000);
 //		log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
 
 		panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
 		txtnum1.setText(root.getAssignedWidth() + "");
 		txtnum2.setText(root.getAssignedHeight() + "");
 		resizeComponents();
-	}
-
-	private void resizeComponents () {
-		TestCaseUtils.jComponentMap.forEach((lComponent, jComponent) -> {
-			if (lComponent != null) {
-				jComponent.setBounds(lComponent.getAssignedX(), lComponent.getAssignedY(),
-						lComponent.getAssignedWidth(), lComponent.getAssignedHeight());
-				jComponent.setBorder(BorderFactory.createLineBorder(lComponent.isFeasible() ? Color.GREEN : Color.RED));
-				jComponent.setToolTipText(lComponent.getLabel());
-			}
-		});
 	}
 
 	/**
@@ -257,12 +276,8 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	}
 
 	/**
-	 * In this method we only need to check if the minimum values match because if the values exceed maximum we can still fit inside.
+	 * this method returns the minimum euclidean distance layout to our resolution
 	 */
-	private boolean isLayoutFeasible (int w, int h, WidthHeightRange whr) {
-		return w >= whr.getMinWidth() && w <= whr.getMaxWidth() && h >= whr.getMinHeight() && h <= whr.getMaxHeight();
-	}
-
 	private WidthHeightRange getFeasibleLayout (Vector<WidthHeightRange> layouts) {
 		if (layouts.isEmpty()) {
 			return null;
@@ -289,21 +304,9 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		root.setAssignedHeight(panel.getHeight());
 	}
 
-	@Override
-	public void componentMoved (ComponentEvent componentEvent) {
-	}
-
-	@Override
-	public void componentShown (ComponentEvent componentEvent) {
-	}
-
-	@Override
-	public void componentHidden (ComponentEvent componentEvent) {
-	}
-
 	public class CanvasMouseListener implements MouseListener, MouseWheelListener {
 
-		private Logger logger = LogManager.getLogger(CanvasMouseListener.class);
+		private final Logger logger = LogManager.getLogger(CanvasMouseListener.class);
 		private int counter = 0;
 
 		@Override
@@ -351,6 +354,15 @@ public class SmartLayout extends JFrame implements ComponentListener {
 
 		private void incrementCount () {
 			counter = (counter + 1) % finalLayoutCases.size();
+		}
+	}
+
+	class ItemChangeListener implements ItemListener {
+		@Override
+		public void itemStateChanged (ItemEvent event) {
+			if (event.getStateChange() == ItemEvent.SELECTED) {
+				layoutAfterComboBoxChanged(comboBox.getSelectedIndex());
+			}
 		}
 	}
 }

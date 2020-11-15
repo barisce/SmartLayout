@@ -1,6 +1,5 @@
 package com.prototype.smartlayout.model;
 
-import com.prototype.smartlayout.dictionary.ComponentDictionary;
 import com.prototype.smartlayout.model.enums.ComponentDimensionEnum;
 import com.prototype.smartlayout.model.enums.WidthHeightRangeEnum;
 import java.util.Vector;

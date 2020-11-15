@@ -260,8 +260,8 @@ public class LayoutContainer implements Layoutable {
 //			feasible = strategyWeight(x, y, isHorizontal(whr) ? totalMinWidthOfChildren : totalMinHeightOfChildren, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues);
 
 //			// this stream gets the statistics of the int array so we can find minimum or maximum values of this array.
-			IntSummaryStatistics statWidth = Arrays.stream(maxWidthValues).summaryStatistics();
-			IntSummaryStatistics statHeight = Arrays.stream(maxHeightValues).summaryStatistics();
+//			IntSummaryStatistics statWidth = Arrays.stream(maxWidthValues).summaryStatistics();
+//			IntSummaryStatistics statHeight = Arrays.stream(maxHeightValues).summaryStatistics();
 //			// Max values strategy
 //			feasible = strategyValues(x, y, subRanges, whr.getOrientationStrategy(), (w > statWidth.getMin() ? statWidth.getMin() : w), (h > statHeight.getMin() ? statHeight.getMin() : h), isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 //			// Min values strategy
@@ -379,6 +379,20 @@ public class LayoutContainer implements Layoutable {
 		return layoutRecursively(x, y, subRanges, orientationStrategy, w, h, cum, distribution);
 	}
 
+	// TODO: private boolean strategyWeighted();
+
+	/**
+	 * This method acts like a water scale. adds minimum then adds only to least numbers
+	 * @param x
+	 * @param y
+	 * @param subRanges
+	 * @param orientationStrategy
+	 * @param w
+	 * @param h
+	 * @param minValues
+	 * @param capacityValues
+	 * @return
+	 */
 	private boolean strategyBalance (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] minValues, int[] capacityValues) {
 		int cum = 0;
 		int[] maxValues = new int[subRanges.size()];
