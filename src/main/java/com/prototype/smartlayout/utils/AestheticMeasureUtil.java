@@ -55,8 +55,8 @@ public class AestheticMeasureUtil {
 		screenWidth = tree.getAssignedWidth();
 		screenHeight = tree.getAssignedHeight();
 		traverseToLeafNodes(tree);
-		double balance = measureBalance(tree) * balanceFactor;
-		double equilibrium = measureEquilibrium(tree) * equilibriumFactor;
+		double balance = measureBalance() * balanceFactor;
+		double equilibrium = measureEquilibrium() * equilibriumFactor;
 		double symmetry = measureSymmetry() * symmetryFactor;
 		double sequence = measureSequence() * sequenceFactor;
 		double cohesion = measureCohesion() * cohesionFactor;
@@ -76,7 +76,7 @@ public class AestheticMeasureUtil {
 		return orderAndComplexityNumber + orderAndComplexity;
 	}
 
-	public static double measureBalance (Layoutable tree) {
+	public static double measureBalance () {
 		double bmVertical = 0;
 		double bmHorizontal = 0;
 		double wLeft = 0;
@@ -101,7 +101,7 @@ public class AestheticMeasureUtil {
 		return 1 - ((Math.abs(bmVertical) + Math.abs(bmHorizontal)) / 2);
 	}
 
-	public static double measureEquilibrium (Layoutable tree) {
+	public static double measureEquilibrium () {
 		double upperEmX = 0;
 		double emX = 0;
 		double upperEmY = 0;
@@ -112,8 +112,8 @@ public class AestheticMeasureUtil {
 			upperEmY += (areaList.get(i) * (centerCoordinateList.get(i).getY() - screenHeight / 2d));
 			sumArea += areaList.get(i);
 		}
-		emX = (2 * upperEmX) / (getSize() * tree.getAssignedWidth() * sumArea);
-		emY = (2 * upperEmY) / (getSize() * tree.getAssignedHeight() * sumArea);
+		emX = (2 * upperEmX) / (getSize() * screenWidth * sumArea);
+		emY = (2 * upperEmY) / (getSize() * screenHeight * sumArea);
 		return 1 - ((Math.abs(emX) + Math.abs(emY)) / 2);
 	}
 
