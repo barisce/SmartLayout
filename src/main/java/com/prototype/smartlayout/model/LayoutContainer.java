@@ -8,11 +8,11 @@ import java.util.IntSummaryStatistics;
 import java.util.Vector;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 
 @Getter
 @Setter
-@Log4j
+@Log4j2
 public class LayoutContainer implements Layoutable {
 
 	private final Vector<Layoutable> children;
@@ -383,6 +383,7 @@ public class LayoutContainer implements Layoutable {
 
 	/**
 	 * This method acts like a water scale. adds minimum then adds only to least numbers
+	 *
 	 * @param x
 	 * @param y
 	 * @param subRanges
@@ -513,7 +514,7 @@ public class LayoutContainer implements Layoutable {
 			if (component instanceof LayoutComponent && label.equals(((LayoutComponent) component).getLabel())) {
 				return (LayoutComponent) component;
 			} else if (component instanceof LayoutContainer) {
-				LayoutComponent comp = ((LayoutContainer)component).findComponent(label);
+				LayoutComponent comp = ((LayoutContainer) component).findComponent(label);
 				if (comp != null) {
 					return comp;
 				}

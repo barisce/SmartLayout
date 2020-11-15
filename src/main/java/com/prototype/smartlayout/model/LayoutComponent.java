@@ -3,33 +3,33 @@ package com.prototype.smartlayout.model;
 import java.util.Vector;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 
 @Getter
 @Setter
-@Log4j
+@Log4j2
 public class LayoutComponent implements Layoutable {
-    private final WidthHeightRange widthHeightRange;
-    private final String label;
-    private boolean isFeasible;
-    private int assignedX;
-    private int assignedY;
-    private int assignedWidth;
-    private int assignedHeight;
+	private final WidthHeightRange widthHeightRange;
+	private final String label;
+	private boolean isFeasible;
+	private int assignedX;
+	private int assignedY;
+	private int assignedWidth;
+	private int assignedHeight;
 
-    public LayoutComponent(String name, WidthHeightRange widthHeightRange) {
-        label = name;
-        assignedX = 0;
-        assignedY = 0;
-        this.widthHeightRange = widthHeightRange;
-        assignedWidth = widthHeightRange.getMinWidth();
-        assignedHeight = widthHeightRange.getMinHeight();
-    }
+	public LayoutComponent (String name, WidthHeightRange widthHeightRange) {
+		label = name;
+		assignedX = 0;
+		assignedY = 0;
+		this.widthHeightRange = widthHeightRange;
+		assignedWidth = widthHeightRange.getMinWidth();
+		assignedHeight = widthHeightRange.getMinHeight();
+	}
 
-    public void setPosition(int xVal, int yVal) {
-        setAssignedX(xVal);
-        setAssignedY(yVal);
-    }
+	public void setPosition (int xVal, int yVal) {
+		setAssignedX(xVal);
+		setAssignedY(yVal);
+	}
 
 	public void setSize (int width, int height) {
 		if (width > widthHeightRange.getMaxWidth()

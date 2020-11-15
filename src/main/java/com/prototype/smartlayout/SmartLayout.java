@@ -5,6 +5,7 @@ import com.prototype.smartlayout.listeners.KeyInputHandler;
 import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.Layoutable;
 import com.prototype.smartlayout.model.WidthHeightRange;
+import com.prototype.smartlayout.utils.AestheticMeasureUtil;
 import com.prototype.smartlayout.utils.TestCaseUtils;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -21,6 +22,9 @@ import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Vector;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -31,20 +35,19 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
-import lombok.extern.log4j.Log4j;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-@Log4j
+@Log4j2
 public class SmartLayout extends JFrame {
 	private static final long serialVersionUID = 6944709955451188697L;
-	private final JPanel panel;
-	private final JCheckBox showOnlyFeasibleLayouts = new JCheckBox("");
-	private final JTextField txtnum1;
-	private final JTextField txtnum2;
-	private final JComboBox comboBox;
-	private final List<Color> colorList = new ArrayList<>();
+	private JPanel panel;
+	private JCheckBox showOnlyFeasibleLayouts = new JCheckBox("");
+	private JTextField txtnum1;
+	private JTextField txtnum2;
+	private JComboBox comboBox;
+	private List<Color> colorList = new ArrayList<>();
 	private Vector<WidthHeightRange> feasibleLayouts = new Vector<>();
 	private Layoutable root;
 	private Vector<WidthHeightRange> finalLayoutCases;
@@ -155,9 +158,9 @@ public class SmartLayout extends JFrame {
 			root.setAssignedWidth(Integer.parseInt(txtnum1.getText()) + 1);
 			root.setAssignedHeight(Integer.parseInt(txtnum2.getText()) - 1);
 			getFinalLayoutCases();
-			root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getFeasibleLayout(finalLayoutCases));
+			root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getAestheticLayout(feasibleLayouts));
 			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 76);
-			log.debug(getFeasibleLayout(finalLayoutCases));
+			log.debug(getAestheticLayout(feasibleLayouts));
 			resizeComponents();
 		});
 		topPanel.add(button);
@@ -172,9 +175,6 @@ public class SmartLayout extends JFrame {
 	}
 
 	public static void main (String[] args) {
-		PropertyConfigurator.configure(
-				SmartLayout.class.getProtectionDomain().getCodeSource().getLocation().getPath()
-						+ "log4j.properties");
 
 		SmartLayout app = new SmartLayout();
 		app.run();
@@ -206,9 +206,8 @@ public class SmartLayout extends JFrame {
 				long startTime = System.nanoTime();
 				root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), finalLayoutCase);
 				long elapsedTime = System.nanoTime() - startTime;
-				log.debug("layout Execution time in nanosecond: " + elapsedTime);
-				log.debug("layout Execution time in microsecond: " + elapsedTime / 1000);
-				log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
+				log.debug("\nlayout Execution time in nanosecond: " + elapsedTime + "\nlayout Execution time in microsecond: " + (elapsedTime / 1000) +
+						"\nRoot Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
 				resizeComponents();
 				break;
 			}
@@ -246,7 +245,7 @@ public class SmartLayout extends JFrame {
 		setResizeOnRoot();
 		getFinalLayoutCases();
 		long startTime = System.nanoTime();
-		root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), getFeasibleLayout(feasibleLayouts));
+		root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), getAestheticLayout(feasibleLayouts));
 		long elapsedTime = System.nanoTime() - startTime;
 		log.debug("\nLayout Execution time in nanosecond: " + elapsedTime + "\nLayout Execution time in microsecond: " + elapsedTime / 1000);
 //		log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
@@ -273,6 +272,22 @@ public class SmartLayout extends JFrame {
 				feasibleLayouts.add(finalLayoutCase);
 			}
 		}
+	}
+
+	private WidthHeightRange getAestheticLayout (Vector<WidthHeightRange> layouts) {
+		if (layouts.isEmpty()) {
+			return null;
+		}
+		Map<Integer, Double> aestheticMeasurementMap = new HashMap<>();
+		for (int i = 0; i < layouts.size(); i++) {
+			WidthHeightRange layout = layouts.get(i);
+			root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), layout);
+			Double aesthetics = AestheticMeasureUtil.measureAesthetics(root);
+			aestheticMeasurementMap.put(i, aesthetics.isNaN() ? 0 : aesthetics);
+		}
+		Optional<Entry<Integer, Double>> maxEntry = aestheticMeasurementMap.entrySet().stream().max(Entry.comparingByValue());
+		log.info("Selected index : " + maxEntry.get().getKey() + " Selected aesthetic value : " + maxEntry.get().getValue());
+		return maxEntry.isPresent() ? layouts.get(maxEntry.get().getKey()) : layouts.get(0);
 	}
 
 	/**
@@ -307,7 +322,6 @@ public class SmartLayout extends JFrame {
 	public class CanvasMouseListener implements MouseListener, MouseWheelListener {
 
 		private final Logger logger = LogManager.getLogger(CanvasMouseListener.class);
-		private int counter = 0;
 
 		@Override
 		public void mouseClicked (MouseEvent e) {
@@ -332,28 +346,6 @@ public class SmartLayout extends JFrame {
 
 		@Override
 		public void mouseWheelMoved (MouseWheelEvent e) {
-			incrementCount();
-			if (e.getWheelRotation() > 0) {
-				// DOWN
-				root.setAssignedWidth(Math.max(0, root.getAssignedWidth() - 50));
-				root.setAssignedHeight(Math.max(0, root.getAssignedHeight() - 50));
-				getFinalLayoutCases();
-				root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCases.get(counter));
-			} else {
-				// UP
-				root.setAssignedWidth(root.getAssignedWidth() + 50);
-				root.setAssignedHeight(root.getAssignedHeight() + 50);
-				getFinalLayoutCases();
-				root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCases.get(counter));
-			}
-			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 75);
-			logger.debug("Width - " + root.getAssignedWidth() + " Y - " + root.getAssignedHeight());
-			log.debug(finalLayoutCases);
-			repaint();
-		}
-
-		private void incrementCount () {
-			counter = (counter + 1) % finalLayoutCases.size();
 		}
 	}
 
