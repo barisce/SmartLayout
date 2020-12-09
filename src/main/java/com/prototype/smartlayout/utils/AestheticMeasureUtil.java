@@ -23,7 +23,7 @@ public class AestheticMeasureUtil {
 	private static final double equilibriumFactor = 1;
 	private static final double symmetryFactor = 1;
 	private static final double sequenceFactor = 1;
-	private static final double cohesionFactor = 1;
+	private static final double cohesionFactor = 0.5;
 	private static final double unityFactor = 1;
 	private static final double proportionFactor = 1;
 	private static final double simplicityFactor = 1;
@@ -278,20 +278,18 @@ public class AestheticMeasureUtil {
 	}
 
 	public static double measureCohesion () {
-		double cmFL = 0;
-		double cmLO = 0;
+		double cmFL;
+		double cmLO;
 		double fi = 0;
-		double ti = 0;
+		double ti;
 		for (int i = 0; i < getSize(); i++) {
-			// FIXME : Assuming screenHeight and screenWidth are the same as layoutHeight and layoutWidth
 			if (nodeList.get(i).getAssignedHeight() <= 0 || nodeList.get(i).getAssignedWidth() <= 0) {
 				continue;
 			}
-			ti = (nodeList.get(i).getAssignedHeight() / nodeList.get(i).getAssignedWidth()) / (frameHeight / frameWidth);
+			ti = ((double)nodeList.get(i).getAssignedHeight() / nodeList.get(i).getAssignedWidth()) / (frameHeight / frameWidth);
 			fi += ti <= 1 ? ti : 1 / ti;
 		}
-		// FIXME : Assuming layout is the same size as frame
-		double tFL = 1; // (heightLayout / widthLayout) / (heightFrame / widthFrame)
+		double tFL = (frameHeight / frameWidth) / (screenHeight / screenWidth);
 		cmFL = tFL <= 1 ? tFL : 1 / tFL;
 		cmLO = fi / getSize();
 		return (Math.abs(cmFL) + Math.abs(cmLO)) / 2;
@@ -309,9 +307,9 @@ public class AestheticMeasureUtil {
 		double pmObject = 0;
 		double pmLayout = 0;
 
-		for (int i = 0; i < nodeList.size(); i++) {
-			double ri = (double)nodeList.get(i).getAssignedHeight() / nodeList.get(i).getAssignedWidth();
-			double pi = ri <= 1 ? ri : 1/ri;
+		for (LayoutComponent layoutComponent : nodeList) {
+			double ri = (double) layoutComponent.getAssignedHeight() / layoutComponent.getAssignedWidth();
+			double pi = ri <= 1 ? ri : 1 / ri;
 			double[] pjMinusPi = {Math.abs(rectangleRatios[0] - pi), Math.abs(rectangleRatios[1] - pi), Math.abs(rectangleRatios[2] - pi), Math.abs(rectangleRatios[3] - pi), Math.abs(rectangleRatios[4] - pi)};
 			Arrays.sort(pjMinusPi);
 			pmObject += 1 - (pjMinusPi[0]) / 0.5;
@@ -344,10 +342,8 @@ public class AestheticMeasureUtil {
 		return (Math.abs(rmAlignment) + Math.abs(rmSpacing)) / 2d;
 	}
 
-	// Not Applicable
 	public static double measureEconomy () {
-		// TODO : 3 / (numberOfSizes + numberOfColors + numberOfShapes)
-		return 1 / distinctAreaCount;
+		return 1d / distinctAreaCount;
 	}
 
 	/**
@@ -368,7 +364,7 @@ public class AestheticMeasureUtil {
 	}
 
 	public static double measureRhythm () {
-		// RHMArea is 0 since we fill the entire screen
+		// TODO : RHMArea is 0 since we fill the entire screen
 		return 0;
 	}
 
