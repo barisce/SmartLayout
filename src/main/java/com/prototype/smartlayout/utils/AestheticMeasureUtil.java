@@ -4,9 +4,12 @@ import com.prototype.smartlayout.model.Coordinate;
 import com.prototype.smartlayout.model.LayoutComponent;
 import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.Layoutable;
-import java.math.BigInteger;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +18,6 @@ import lombok.Setter;
  * These measures does not include color shape etc.
  * formulas gained from <site>http://www.mi.sanu.ac.rs/vismath/ngo/index.html</site>
  */
-// TODO : We don't know assignedX and assignedY values of leaf nodes
 public class AestheticMeasureUtil {
 	private static final double balanceFactor = 1;
 	private static final double equilibriumFactor = 1;
@@ -32,8 +34,6 @@ public class AestheticMeasureUtil {
 	private static final double rhythmFactor = 1;
 	private static final double orderAndComplexityFactor = 1;
 
-	private static final double divisionByZeroAvoider = 0.00001;
-
 	// This is not multi thread safe
 	private static List<Double> leftAreaList = new ArrayList<>();
 	private static List<Double> rightAreaList = new ArrayList<>();
@@ -42,34 +42,73 @@ public class AestheticMeasureUtil {
 	private static List<Double> areaList = new ArrayList<>();
 	private static List<Coordinate> centerCoordinateList = new ArrayList<>();
 	private static List<LayoutComponent> nodeList = new ArrayList<>();
+	private static List<Coordinate> widthHeightList = new ArrayList<>();
 	private static List<LayoutComponent> ulList = new ArrayList<>();
 	private static List<LayoutComponent> urList = new ArrayList<>();
 	private static List<LayoutComponent> llList = new ArrayList<>();
 	private static List<LayoutComponent> lrList = new ArrayList<>();
+	private static double frameWidth = 0;
+	private static double frameHeight = 0;
 	private static double screenWidth = 0;
 	private static double screenHeight = 0;
+
+	// https://stackoverflow.com/questions/49377139/performance-of-set-in-java-vs-list-in-java
+	private static List<Integer> unorganizedHAlignmentPoints = new ArrayList<>();
+	private static List<Integer> horizontalAlignmentPoints = new ArrayList<>();
+	private static List<Integer> unorganizedVAlignmentPoints = new ArrayList<>();
+	private static List<Integer> verticalAlignmentPoints = new ArrayList<>();
+	// nSpacing looks at the unique spacing of row AND columns so we hold a single list of them
+	// FIXME : change this into count and hold an int not HashSet
+	private static HashSet<Integer> distinctDistances = new HashSet<>();
+	private static int distinctAreaCount = 0;
+
+	private static final double[] rectangleRatios = {1, 1/1.414, 1/1.618, 1/1.732, 1/2.0};
 
 	private AestheticMeasureUtil () {
 	}
 
 	public static double measureAesthetics (Layoutable tree) {
 		clearValues();
-		screenWidth = tree.getAssignedWidth();
-		screenHeight = tree.getAssignedHeight();
+		frameWidth = tree.getAssignedWidth();
+		frameHeight = tree.getAssignedHeight();
+		// gets total screen size, supports multi-monitors as long as they all are the same resolution
+		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+		screenWidth = gd.getDisplayMode().getWidth();
+		screenHeight = gd.getDisplayMode().getHeight();
 		traverseToLeafNodes(tree);
-		double balance = measureBalance() * balanceFactor;
-		double equilibrium = measureEquilibrium() * equilibriumFactor;
-		double symmetry = measureSymmetry() * symmetryFactor;
-		double sequence = measureSequence() * sequenceFactor;
-		double cohesion = measureCohesion() * cohesionFactor;
-		double unity = measureUnity() * unityFactor;
-		double proportion = measureProportion() * proportionFactor;
-		double simplicity = measureSimplicity() * simplicityFactor;
-		double density = measureDensity() * densityFactor;
-		double regularity = measureRegularity() * regularityFactor;
-		double economy = measureEconomy() * economyFactor;
-		double homogeneity = measureHomogeneity() * homogeneityFactor;
-		double rhythm = measureRhythm() * rhythmFactor;
+		getAlignmentPoints(unorganizedHAlignmentPoints, horizontalAlignmentPoints);
+		getAlignmentPoints(unorganizedVAlignmentPoints, verticalAlignmentPoints);
+		getDistinctDistances(horizontalAlignmentPoints, distinctDistances);
+		getDistinctDistances(verticalAlignmentPoints, distinctDistances);
+		getDistinctAreas();
+
+		double balance = measureBalance();
+		double equilibrium = measureEquilibrium();
+		double symmetry = measureSymmetry();
+		double sequence = measureSequence();
+		double cohesion = measureCohesion();
+		double unity = measureUnity();
+		double proportion = measureProportion();
+		double simplicity = measureSimplicity();
+		double density = measureDensity();
+		double regularity = measureRegularity();
+		double economy = measureEconomy();
+		double homogeneity = measureHomogeneity();
+		double rhythm = measureRhythm();
+
+		balance = Double.isNaN(balance) ? 0 : balance * balanceFactor;
+		equilibrium = Double.isNaN(equilibrium) ? 0 : equilibrium * equilibriumFactor;
+		symmetry = Double.isNaN(symmetry) ? 0 : symmetry * symmetryFactor;
+		sequence = Double.isNaN(sequence) ? 0 : sequence * sequenceFactor;
+		cohesion = Double.isNaN(cohesion) ? 0 : cohesion * cohesionFactor;
+		unity = Double.isNaN(unity) ? 0 : unity * unityFactor;
+		proportion = Double.isNaN(proportion) ? 0 : proportion * proportionFactor;
+		simplicity = Double.isNaN(simplicity) ? 0 : simplicity * simplicityFactor;
+		density = Double.isNaN(density) ? 0 : density * densityFactor;
+		regularity = Double.isNaN(regularity) ? 0 : regularity * regularityFactor;
+		economy = Double.isNaN(economy) ? 0 : economy * economyFactor;
+		homogeneity = Double.isNaN(homogeneity) ? 0 : homogeneity * homogeneityFactor;
+		rhythm = Double.isNaN(rhythm) ? 0 : rhythm * rhythmFactor;
 
 		double orderAndComplexityNumber = balance + equilibrium + symmetry + sequence + cohesion +
 				unity + proportion + simplicity + density + regularity + economy + homogeneity + rhythm;
@@ -79,8 +118,8 @@ public class AestheticMeasureUtil {
 	}
 
 	public static double measureBalance () {
-		double bmVertical = 0;
-		double bmHorizontal = 0;
+		double bmVertical;
+		double bmHorizontal;
 		double wLeft = 0;
 		double wRight = 0;
 		double wTop = 0;
@@ -110,12 +149,12 @@ public class AestheticMeasureUtil {
 		double emY = 0;
 		double sumArea = 0;
 		for (int i = 0; i < getSize(); i++) {
-			upperEmX += (areaList.get(i) * (centerCoordinateList.get(i).getX() - screenWidth / 2d));
-			upperEmY += (areaList.get(i) * (centerCoordinateList.get(i).getY() - screenHeight / 2d));
+			upperEmX += (areaList.get(i) * (centerCoordinateList.get(i).getX() - frameWidth / 2d));
+			upperEmY += (areaList.get(i) * (centerCoordinateList.get(i).getY() - frameHeight / 2d));
 			sumArea += areaList.get(i);
 		}
-		emX = (2 * upperEmX) / (getSize() * screenWidth * sumArea);
-		emY = (2 * upperEmY) / (getSize() * screenHeight * sumArea);
+		emX = (2 * upperEmX) / (getSize() * frameWidth * sumArea);
+		emY = (2 * upperEmY) / (getSize() * frameHeight * sumArea);
 		return 1 - ((Math.abs(emX) + Math.abs(emY)) / 2);
 	}
 
@@ -127,35 +166,47 @@ public class AestheticMeasureUtil {
 		SymmetryData symLR = calculateSymmetryData(lrList);
 
 		// Normalize values for equation
-		double xul = normalize(symUL.getX(), symUL.getXMin(), symUL.getXMax());
-		double xur = normalize(symUR.getX(), symUR.getXMin(), symUR.getXMax());
-		double xll = normalize(symLL.getX(), symLL.getXMin(), symLL.getXMax());
-		double xlr = normalize(symLR.getX(), symLR.getXMin(), symLR.getXMax());
+		double[] xArr = {symUL.getX(), symUR.getX(), symLL.getX(), symLR.getX()};
+		Arrays.sort(xArr);
+		double xul = normalize(symUL.getX(), xArr[0], xArr[xArr.length - 1]);
+		double xur = normalize(symUR.getX(), xArr[0], xArr[xArr.length - 1]);
+		double xll = normalize(symLL.getX(), xArr[0], xArr[xArr.length - 1]);
+		double xlr = normalize(symLR.getX(), xArr[0], xArr[xArr.length - 1]);
 
-		double yul = normalize(symUL.getY(), symUL.getYMin(), symUL.getYMax());
-		double yur = normalize(symUR.getY(), symUR.getYMin(), symUR.getYMax());
-		double yll = normalize(symLL.getY(), symLL.getYMin(), symLL.getYMax());
-		double ylr = normalize(symLR.getY(), symLR.getYMin(), symLR.getYMax());
+		double[] yArr = {symUL.getY(), symUR.getY(), symLL.getY(), symLR.getY()};
+		Arrays.sort(yArr);
+		double yul = normalize(symUL.getY(), yArr[0], yArr[yArr.length - 1]);
+		double yur = normalize(symUR.getY(), yArr[0], yArr[yArr.length - 1]);
+		double yll = normalize(symLL.getY(), yArr[0], yArr[yArr.length - 1]);
+		double ylr = normalize(symLR.getY(), yArr[0], yArr[yArr.length - 1]);
 
-		double bul = normalize(symUL.getB(), symUL.getBMin(), symUL.getBMax());
-		double bur = normalize(symUR.getB(), symUR.getBMin(), symUR.getBMax());
-		double bll = normalize(symLL.getB(), symLL.getBMin(), symLL.getBMax());
-		double blr = normalize(symLR.getB(), symLR.getBMin(), symLR.getBMax());
+		double[] bArr = {symUL.getB(), symUR.getB(), symLL.getB(), symLR.getB()};
+		Arrays.sort(bArr);
+		double bul = normalize(symUL.getB(), bArr[0], bArr[bArr.length - 1]);
+		double bur = normalize(symUR.getB(), bArr[0], bArr[bArr.length - 1]);
+		double bll = normalize(symLL.getB(), bArr[0], bArr[bArr.length - 1]);
+		double blr = normalize(symLR.getB(), bArr[0], bArr[bArr.length - 1]);
 
-		double hul = normalize(symUL.getH(), symUL.getHMin(), symUL.getHMax());
-		double hur = normalize(symUR.getH(), symUR.getHMin(), symUR.getHMax());
-		double hll = normalize(symLL.getH(), symLL.getHMin(), symLL.getHMax());
-		double hlr = normalize(symLR.getH(), symLR.getHMin(), symLR.getHMax());
+		double[] hArr = {symUL.getH(), symUR.getH(), symLL.getH(), symLR.getH()};
+		Arrays.sort(hArr);
+		double hul = normalize(symUL.getH(), hArr[0], hArr[hArr.length - 1]);
+		double hur = normalize(symUR.getH(), hArr[0], hArr[hArr.length - 1]);
+		double hll = normalize(symLL.getH(), hArr[0], hArr[hArr.length - 1]);
+		double hlr = normalize(symLR.getH(), hArr[0], hArr[hArr.length - 1]);
 
-		double tul = normalize(symUL.getTheta(), symUL.getThetaMin(), symUL.getThetaMax());
-		double tur = normalize(symUR.getTheta(), symUR.getThetaMin(), symUR.getThetaMax());
-		double tll = normalize(symLL.getTheta(), symLL.getThetaMin(), symLL.getThetaMax());
-		double tlr = normalize(symLR.getTheta(), symLR.getThetaMin(), symLR.getThetaMax());
+		double[] tArr = {symUL.getTheta(), symUR.getTheta(), symLL.getTheta(), symLR.getTheta()};
+		Arrays.sort(tArr);
+		double tul = normalize(symUL.getTheta(), tArr[0], tArr[tArr.length - 1]);
+		double tur = normalize(symUR.getTheta(), tArr[0], tArr[tArr.length - 1]);
+		double tll = normalize(symLL.getTheta(), tArr[0], tArr[tArr.length - 1]);
+		double tlr = normalize(symLR.getTheta(), tArr[0], tArr[tArr.length - 1]);
 
-		double rul = normalize(symUL.getR(), symUL.getRMin(), symUL.getRMax());
-		double rur = normalize(symUR.getR(), symUR.getRMin(), symUR.getRMax());
-		double rll = normalize(symLL.getR(), symLL.getRMin(), symLL.getRMax());
-		double rlr = normalize(symLR.getR(), symLR.getRMin(), symLR.getRMax());
+		double[] rArr = {symUL.getR(), symUR.getR(), symLL.getR(), symLR.getR()};
+		Arrays.sort(rArr);
+		double rul = normalize(symUL.getR(), rArr[0], rArr[rArr.length - 1]);
+		double rur = normalize(symUR.getR(), rArr[0], rArr[rArr.length - 1]);
+		double rll = normalize(symLL.getR(), rArr[0], rArr[rArr.length - 1]);
+		double rlr = normalize(symLR.getR(), rArr[0], rArr[rArr.length - 1]);
 
 		double symVertical = (Math.abs(xul - xur) + Math.abs(xll - xlr) + Math.abs(yul - yur) + Math.abs(yll - ylr) + Math.abs(hul - hur) + Math.abs(hll - hlr) + Math.abs(bul - bur) + Math.abs(bll - blr) + Math.abs(tul - tur) + Math.abs(tll - tlr) + Math.abs(rul - rur) + Math.abs(rll - rlr)) / 12d;
 		double symHorizontal = (Math.abs(xul - xll) + Math.abs(xur - xlr) + Math.abs(yul - yll) + Math.abs(yur - ylr) + Math.abs(hul - hll) + Math.abs(hur - hlr) + Math.abs(bul - bll) + Math.abs(bur - blr) + Math.abs(tul - tll) + Math.abs(tur - tlr) + Math.abs(rul - rll) + Math.abs(rur - rlr)) / 12d;
@@ -167,7 +218,7 @@ public class AestheticMeasureUtil {
 	public static SymmetryData calculateSymmetryData (List<LayoutComponent> list) {
 		SymmetryData sym = new SymmetryData();
 		for (int i = 0; i < list.size(); i++) {
-			double xijMinusXc = list.get(i).getAssignedX() + (list.get(i).getAssignedWidth() / 2d) + divisionByZeroAvoider - (screenWidth / 2d);
+			double xijMinusXc = list.get(i).getAssignedX() + (list.get(i).getAssignedWidth() / 2d) - (frameWidth / 2d);
 			sym.setX(sym.getX() + Math.abs(xijMinusXc));
 			if (Math.abs(xijMinusXc) < sym.getXMin()) {
 				sym.setXMin(Math.abs(xijMinusXc));
@@ -176,7 +227,7 @@ public class AestheticMeasureUtil {
 				sym.setXMax(Math.abs(xijMinusXc));
 			}
 
-			double yijMinusYc = list.get(i).getAssignedY() + (list.get(i).getAssignedHeight() / 2d) + divisionByZeroAvoider - (screenHeight / 2d);
+			double yijMinusYc = list.get(i).getAssignedY() + (list.get(i).getAssignedHeight() / 2d) - (frameHeight / 2d);
 			sym.setY(sym.getY() + Math.abs(yijMinusYc));
 			if (Math.abs(yijMinusYc) < sym.getYMin()) {
 				sym.setYMin(Math.abs(yijMinusYc));
@@ -223,7 +274,7 @@ public class AestheticMeasureUtil {
 
 	public static double measureSequence () {
 		// TODO
-		return 0;
+		return 1 - (0) / 8d;
 	}
 
 	public static double measureCohesion () {
@@ -236,7 +287,7 @@ public class AestheticMeasureUtil {
 			if (nodeList.get(i).getAssignedHeight() <= 0 || nodeList.get(i).getAssignedWidth() <= 0) {
 				continue;
 			}
-			ti = (nodeList.get(i).getAssignedHeight() / nodeList.get(i).getAssignedWidth()) / (screenHeight / screenWidth);
+			ti = (nodeList.get(i).getAssignedHeight() / nodeList.get(i).getAssignedWidth()) / (frameHeight / frameWidth);
 			fi += ti <= 1 ? ti : 1 / ti;
 		}
 		// FIXME : Assuming layout is the same size as frame
@@ -246,23 +297,38 @@ public class AestheticMeasureUtil {
 		return (Math.abs(cmFL) + Math.abs(cmLO)) / 2;
 	}
 
-	// Not Applicable
+	// ???
 	public static double measureUnity () {
+		double umForm = 1 - (distinctAreaCount - 1) / getSize();
 		// UMSpace = 1 - (areaLayout - totalArea) / (areaFrame - totalArea) which is 0 in our case
-		// UMForm = 1 - (numberOfSizes + numberOfColors + numberOfShapes - 3) / 3 * getSize()
-		// TODO Find all different sizes
 		// 1 - (numberOfSizes - 1) / getSize()
-		return 0; //(Math.abs(cmFL)) / 2;
+		return umForm;
 	}
 
 	public static double measureProportion () {
-		// TODO
-		return 0;
+		double pmObject = 0;
+		double pmLayout = 0;
+
+		for (int i = 0; i < nodeList.size(); i++) {
+			double ri = (double)nodeList.get(i).getAssignedHeight() / nodeList.get(i).getAssignedWidth();
+			double pi = ri <= 1 ? ri : 1/ri;
+			double[] pjMinusPi = {Math.abs(rectangleRatios[0] - pi), Math.abs(rectangleRatios[1] - pi), Math.abs(rectangleRatios[2] - pi), Math.abs(rectangleRatios[3] - pi), Math.abs(rectangleRatios[4] - pi)};
+			Arrays.sort(pjMinusPi);
+			pmObject += 1 - (pjMinusPi[0]) / 0.5;
+		}
+		pmObject = pmObject / getSize();
+
+		double rl = frameHeight / frameWidth; // Assuming layout is as big as frame
+		double pl = rl <= 1 ? rl : 1/rl;
+		double[] pjMinusPl = {Math.abs(rectangleRatios[0] - pl), Math.abs(rectangleRatios[1] - pl), Math.abs(rectangleRatios[2] - pl), Math.abs(rectangleRatios[3] - pl), Math.abs(rectangleRatios[4] - pl)};
+		Arrays.sort(pjMinusPl);
+		pmLayout = 1 - (pjMinusPl[0]) / 0.5;
+
+		return (Math.abs(pmObject) + Math.abs(pmLayout)) / 2d;
 	}
 
 	public static double measureSimplicity () {
-		// TODO : What is alignment point in our project?
-		return 0; //3 / (sumOfVerticalAlignments + sumOfHorizontalAlignments + getSize());
+		return 3d / (verticalAlignmentPoints.size() + horizontalAlignmentPoints.size() + getSize());
 	}
 
 	// Not Applicable
@@ -272,21 +338,33 @@ public class AestheticMeasureUtil {
 	}
 
 	public static double measureRegularity () {
-		// TODO : What is alignment point in our project?
-		return 0;
+		double rmAlignment = 1 - (verticalAlignmentPoints.size() + horizontalAlignmentPoints.size()) / (2d * getSize());
+		double rmSpacing = getSize() == 1 ? 1 : 1 - (distinctDistances.size() - 1) / (2d * getSize() - 1);
+
+		return (Math.abs(rmAlignment) + Math.abs(rmSpacing)) / 2d;
 	}
 
 	// Not Applicable
 	public static double measureEconomy () {
 		// TODO : 3 / (numberOfSizes + numberOfColors + numberOfShapes)
-		return 0;
+		return 1 / distinctAreaCount;
 	}
 
-	// if an object exists in all four quadrants, will it count for every one of them?
+	/**
+	 * Hm = (1 - Ht)^2
+	 * Ht = (sum j of |n/4 - nj| / (n/4)) / 6
+	 * where j is the quadrant upperLeft, upperRight, lowerLeft, lowerRight
+	 * and n is the number of elements
+	 *
+	 * @return
+	 */
 	public static double measureHomogeneity () {
-		BigInteger w = factorial(getSize()).divide((factorial(ulList.size()).multiply(factorial(urList.size())).multiply(factorial(llList.size()).multiply(factorial(lrList.size())))));
-		BigInteger wMax = factorial(getSize()).divide(factorial(getSize() / 4).multiply(factorial(getSize() / 4)).multiply(factorial(getSize() / 4).multiply(factorial(getSize() / 4))));
-		return ((w.divide(wMax))).doubleValue();
+		double ht = Math.abs(getSize() / 4d - ulList.size()) / (getSize() / 4d);
+		ht += Math.abs(getSize() / 4d - urList.size()) / (getSize() / 4d);
+		ht += Math.abs(getSize() / 4d - llList.size()) / (getSize() / 4d);
+		ht += Math.abs(getSize() / 4d - lrList.size()) / (getSize() / 4d);
+		ht = ht / 6d;
+		return Math.pow(1 - ht, 2);
 	}
 
 	public static double measureRhythm () {
@@ -295,7 +373,7 @@ public class AestheticMeasureUtil {
 	}
 
 	public static double measureOrderAndComplexity (double orderAndComplexityNumber) {
-		return orderAndComplexityNumber / 13;
+		return orderAndComplexityNumber / 13d;
 	}
 
 	private static void traverseToLeafNodes (Layoutable node) {
@@ -305,13 +383,14 @@ public class AestheticMeasureUtil {
 			}
 		}
 		if (node instanceof LayoutComponent) {
+			findAligmentPoints(node);
 			findLeftAreaOfComponent((LayoutComponent) node);
 			findRightAreaOfComponent((LayoutComponent) node);
 			findTopAreaOfComponent((LayoutComponent) node);
 			findBottomAreaOfComponent((LayoutComponent) node);
 			findAreaOfComponent((LayoutComponent) node);
 			findCenterCoordinateOfComponent((LayoutComponent) node);
-			addComponent((LayoutComponent) node);
+			addComponentAndSize((LayoutComponent) node);
 		}
 	}
 
@@ -325,17 +404,17 @@ public class AestheticMeasureUtil {
 	 * @param node - Component that we try to find the area of
 	 */
 	private static void findLeftAreaOfComponent (LayoutComponent node) {
-		if (node.getAssignedX() >= (screenWidth / 2d)) {
+		if (node.getAssignedX() >= (frameWidth / 2d)) {
 			leftAreaList.add(0d);
 			return;
 		}
-		if (node.getAssignedY() < screenHeight / 2d) {
+		if (node.getAssignedY() < frameHeight / 2d) {
 			ulList.add(node);
 		} else {
 			llList.add(node);
 		}
-		if (node.getAssignedX() + node.getAssignedWidth() >= (screenWidth / 2d)) {
-			leftAreaList.add(Math.abs((screenWidth / 2d - node.getAssignedX()) * node.getAssignedHeight()));
+		if (node.getAssignedX() + node.getAssignedWidth() >= (frameWidth / 2d)) {
+			leftAreaList.add(Math.abs((frameWidth / 2d - node.getAssignedX()) * node.getAssignedHeight()));
 		} else {
 			leftAreaList.add(Math.abs((double) (node.getAssignedWidth() * node.getAssignedHeight())));
 		}
@@ -351,17 +430,17 @@ public class AestheticMeasureUtil {
 	 * @param node - Component that we try to find the area of
 	 */
 	private static void findRightAreaOfComponent (LayoutComponent node) {
-		if (node.getAssignedX() + node.getAssignedWidth() <= (screenWidth / 2d)) {
+		if (node.getAssignedX() + node.getAssignedWidth() <= (frameWidth / 2d)) {
 			rightAreaList.add(0d);
 			return;
 		}
-		if (node.getAssignedY() < screenHeight / 2d) {
+		if (node.getAssignedY() < frameHeight / 2d) {
 			urList.add(node);
 		} else {
 			lrList.add(node);
 		}
-		if (node.getAssignedX() <= (screenWidth / 2d)) {
-			rightAreaList.add(Math.abs((node.getAssignedX() + node.getAssignedWidth() - screenWidth / 2d) * node.getAssignedHeight()));
+		if (node.getAssignedX() <= (frameWidth / 2d)) {
+			rightAreaList.add(Math.abs((node.getAssignedX() + node.getAssignedWidth() - frameWidth / 2d) * node.getAssignedHeight()));
 		} else {
 			rightAreaList.add(Math.abs((double) (node.getAssignedWidth() * node.getAssignedHeight())));
 		}
@@ -377,12 +456,12 @@ public class AestheticMeasureUtil {
 	 * @param node - Component that we try to find the area of
 	 */
 	private static void findTopAreaOfComponent (LayoutComponent node) {
-		if (node.getAssignedY() >= (screenHeight / 2d)) {
+		if (node.getAssignedY() >= (frameHeight / 2d)) {
 			topAreaList.add(0d);
 			return;
 		}
-		if (node.getAssignedY() + node.getAssignedHeight() >= (screenHeight / 2d)) {
-			topAreaList.add(Math.abs((screenHeight / 2d - node.getAssignedY()) * node.getAssignedWidth()));
+		if (node.getAssignedY() + node.getAssignedHeight() >= (frameHeight / 2d)) {
+			topAreaList.add(Math.abs((frameHeight / 2d - node.getAssignedY()) * node.getAssignedWidth()));
 		} else {
 			topAreaList.add(Math.abs((double) (node.getAssignedHeight() * node.getAssignedWidth())));
 		}
@@ -398,12 +477,12 @@ public class AestheticMeasureUtil {
 	 * @param node - Component that we try to find the area of
 	 */
 	private static void findBottomAreaOfComponent (LayoutComponent node) {
-		if (node.getAssignedY() + node.getAssignedHeight() <= (screenHeight / 2d)) {
+		if (node.getAssignedY() + node.getAssignedHeight() <= (frameHeight / 2d)) {
 			bottomAreaList.add(0d);
 			return;
 		}
-		if (node.getAssignedY() <= (screenHeight / 2d)) {
-			bottomAreaList.add(Math.abs((node.getAssignedY() + node.getAssignedHeight() - screenHeight / 2d) * node.getAssignedWidth()));
+		if (node.getAssignedY() <= (frameHeight / 2d)) {
+			bottomAreaList.add(Math.abs((node.getAssignedY() + node.getAssignedHeight() - frameHeight / 2d) * node.getAssignedWidth()));
 		} else {
 			bottomAreaList.add(Math.abs((double) (node.getAssignedHeight() * node.getAssignedWidth())));
 		}
@@ -417,8 +496,69 @@ public class AestheticMeasureUtil {
 		centerCoordinateList.add(new Coordinate(node.getAssignedX() + (node.getAssignedWidth() / 2d), node.getAssignedY() + (node.getAssignedHeight() / 2d)));
 	}
 
-	private static void addComponent (LayoutComponent node) {
+	/**
+	 * This method gets horizontal and vertical alignment points in a duplicated manner
+	 *
+	 * @param node
+	 */
+	private static void findAligmentPoints (Layoutable node) {
+		unorganizedHAlignmentPoints.add(node.getAssignedX());
+		unorganizedHAlignmentPoints.add(node.getAssignedX() + node.getAssignedWidth());
+		unorganizedVAlignmentPoints.add(node.getAssignedY());
+		unorganizedVAlignmentPoints.add(node.getAssignedY() + node.getAssignedHeight());
+	}
+
+	/**
+	 * This method organizes alignment points and makes a new unique list of these points
+	 *
+	 * @param alignmentPoints    - unorganized alignment points
+	 * @param newAlignmentPoints - organized alignment points
+	 */
+	private static void getAlignmentPoints (List<Integer> alignmentPoints, List<Integer> newAlignmentPoints) {
+		Collections.sort(alignmentPoints);
+		// Traverse the sorted array
+		for (int i = 0; i < alignmentPoints.size(); i++) {
+			// Move the index ahead while there are duplicates
+			while (i < alignmentPoints.size() - 1 && alignmentPoints.get(i).equals(alignmentPoints.get(i + 1))) {
+				i++;
+			}
+			// Add the unique value to a new list
+			newAlignmentPoints.add(alignmentPoints.get(i));
+		}
+	}
+
+	/**
+	 * This method calculates distances of alignment points and stores the unique values in a set
+	 * <site>https://stackoverflow.com/questions/17985029/hashset-vs-arraylist</site>
+	 *
+	 * @param alignmentPoints   - organizedAlignmentPoints
+	 * @param distinctDistances - distinctDistances
+	 */
+	private static void getDistinctDistances (List<Integer> alignmentPoints, HashSet<Integer> distinctDistances) {
+		if (alignmentPoints.size() < 2) {
+			return;
+		}
+		for (int i = 1; i < alignmentPoints.size(); i++) {
+			distinctDistances.add(alignmentPoints.get(i) - alignmentPoints.get(i - 1));
+		}
+	}
+
+	private static void addComponentAndSize (LayoutComponent node) {
 		nodeList.add(node);
+		widthHeightList.add(new Coordinate(node.getAssignedWidth(), node.getAssignedHeight()));
+	}
+
+	private static void getDistinctAreas () {
+		Collections.sort(widthHeightList);
+		// Traverse the sorted array
+		for (int i = 0; i < widthHeightList.size(); i++) {
+			// Move the index ahead while there are duplicates
+			while (i < widthHeightList.size() - 1 && widthHeightList.get(i).getX() == widthHeightList.get(i + 1).getX() && widthHeightList.get(i).getY() == widthHeightList.get(i + 1).getY()) {
+				i++;
+			}
+			// Add the unique value to a new list
+			distinctAreaCount++;
+		}
 	}
 
 	private static int getSize () {
@@ -433,30 +573,23 @@ public class AestheticMeasureUtil {
 		areaList.clear();
 		centerCoordinateList.clear();
 		nodeList.clear();
+		widthHeightList.clear();
 		ulList.clear();
 		urList.clear();
 		llList.clear();
 		lrList.clear();
-		screenWidth = 0;
-		screenHeight = 0;
-	}
-
-	/*
-	 * Java method to calculate factorial of a large number
-	 * @return BigInteger factorial of given number
-	 */
-	public static BigInteger factorial (int number) {
-		BigInteger factorial = BigInteger.ONE;
-
-		for (int i = number; i > 0; i--) {
-			factorial = factorial.multiply(BigInteger.valueOf(i));
-		}
-
-		return factorial;
+		frameWidth = 0;
+		frameHeight = 0;
+		unorganizedHAlignmentPoints.clear();
+		unorganizedVAlignmentPoints.clear();
+		horizontalAlignmentPoints.clear();
+		verticalAlignmentPoints.clear();
+		distinctDistances.clear();
+		distinctAreaCount = 0;
 	}
 
 	public static double normalize (double i, double min, double max) {
-		return (i - min) / (max + divisionByZeroAvoider - min);
+		return (i - min) / (max - min);
 	}
 
 	@Getter
