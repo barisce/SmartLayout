@@ -149,20 +149,20 @@ public class AestheticMeasureUtil {
 
 		if (logEnabled) {
 			StringBuilder sb = new StringBuilder();
-			sb.append("\nbalance: ").append(balance).append("\n")
-					.append("equilibrium: ").append(equilibrium).append("\n")
-					.append("symmetry: ").append(symmetry).append("\n")
-					.append("sequence: ").append(sequence).append("\n")
-					.append("cohesion: ").append(cohesion).append("\n")
-					.append("unity: ").append(unity).append("\n")
-					.append("proportion: ").append(proportion).append("\n")
-					.append("simplicity: ").append(simplicity).append("\n")
-					.append("density: ").append(density).append("\n")
-					.append("regularity: ").append(regularity).append("\n")
-					.append("economy: ").append(economy).append("\n")
-					.append("homogeneity: ").append(homogeneity).append("\n")
-					.append("rhythm: ").append(rhythm).append("\n")
-					.append("orderAndComplexity: ").append(orderAndComplexity);
+			sb.append("\n\tbalance: ").append(balance).append("\n")
+					.append("\tequilibrium: ").append(equilibrium).append("\n")
+					.append("\tsymmetry: ").append(symmetry).append("\n")
+					.append("\tsequence: ").append(sequence).append("\n")
+					.append("\tcohesion: ").append(cohesion).append("\n")
+					.append("\tunity: ").append(unity).append("\n")
+					.append("\tproportion: ").append(proportion).append("\n")
+					.append("\tsimplicity: ").append(simplicity).append("\n")
+					.append("\tdensity: ").append(density).append("\n")
+					.append("\tregularity: ").append(regularity).append("\n")
+					.append("\teconomy: ").append(economy).append("\n")
+					.append("\thomogeneity: ").append(homogeneity).append("\n")
+					.append("\trhythm: ").append(rhythm).append("\n")
+					.append("\torderAndComplexity: ").append(orderAndComplexity);
 			log.info(sb.toString());
 		}
 

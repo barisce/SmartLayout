@@ -1,7 +1,6 @@
 package com.prototype.smartlayout;
 
 import com.prototype.smartlayout.listeners.ComponentResizeEndListener;
-import com.prototype.smartlayout.listeners.KeyInputHandler;
 import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.Layoutable;
 import com.prototype.smartlayout.model.WidthHeightRange;
@@ -15,10 +14,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,8 +31,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 @Log4j2
 public class SmartLayout extends JFrame {
@@ -71,9 +64,6 @@ public class SmartLayout extends JFrame {
 		panel = new JPanel(null);
 		panel.setLayout(null);
 		panel.setSize(800, 600);
-		panel.addMouseListener(new CanvasMouseListener());
-		panel.addMouseWheelListener(new CanvasMouseListener());
-		panel.addKeyListener(new KeyInputHandler());
 
 		showOnlyFeasibleLayouts.addItemListener(e -> getFinalLayoutCases());
 		topPanel.add(showOnlyFeasibleLayouts);
@@ -233,7 +223,7 @@ public class SmartLayout extends JFrame {
 		elapsedTime = System.nanoTime() - startTime;
 		log.debug("getRanges memoization time in nanosecond: " + elapsedTime);
 		log.debug("getRanges memoization time in microsecond: " + elapsedTime / 1000);
-		log.debug(finalLayoutCases);
+		//log.debug(finalLayoutCases);
 		root.layout(0, 0, 800, 400, finalLayoutCases.get(0));
 	}
 
@@ -323,36 +313,6 @@ public class SmartLayout extends JFrame {
 	private void setResizeOnRoot () {
 		root.setAssignedWidth(panel.getWidth());
 		root.setAssignedHeight(panel.getHeight());
-	}
-
-	public class CanvasMouseListener implements MouseListener, MouseWheelListener {
-
-		private final Logger logger = LogManager.getLogger(CanvasMouseListener.class);
-
-		@Override
-		public void mouseClicked (MouseEvent e) {
-			logger.debug("X - " + e.getX() + " Y - " + e.getY());
-		}
-
-		@Override
-		public void mousePressed (MouseEvent e) {
-		}
-
-		@Override
-		public void mouseReleased (MouseEvent e) {
-		}
-
-		@Override
-		public void mouseEntered (MouseEvent e) {
-		}
-
-		@Override
-		public void mouseExited (MouseEvent e) {
-		}
-
-		@Override
-		public void mouseWheelMoved (MouseWheelEvent e) {
-		}
 	}
 
 	class ItemChangeListener implements ItemListener {
