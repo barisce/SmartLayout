@@ -281,19 +281,24 @@ public class SmartLayout extends JFrame {
 		for (int i = 0; i < layouts.size(); i++) {
 			WidthHeightRange layout = layouts.get(i);
 			root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), layout);
-			Double aesthetics = AestheticMeasureUtil.measureAesthetics(root);
-			aestheticMeasurementMap.put(i, aesthetics.isNaN() ? 0 : aesthetics);
+			aestheticMeasurementMap.put(i, AestheticMeasureUtil.measureAesthetics(root, false));
 		}
 		Optional<Entry<Integer, Double>> maxEntry = aestheticMeasurementMap.entrySet().stream().max(Entry.comparingByValue());
 		long elapsedTime = System.nanoTime() - startTime;
-		log.debug("\nAesthetic Layout Execution time in nanosecond: " + elapsedTime + "\nAesthetic Execution time in millisecond: " + elapsedTime / 1000000 + "\nTotal tree size : " + feasibleLayouts.size());
+		// "\nAesthetic Layout Execution time in nanosecond: " + elapsedTime +
+		log.debug("\nAesthetic Execution time in millisecond: " + elapsedTime / 1000000d + "\nTotal tree size : " + feasibleLayouts.size());
 		log.info("Selected index : " + maxEntry.get().getKey() + " Selected aesthetic value : " + maxEntry.get().getValue());
+
+		root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), maxEntry.isPresent() ? layouts.get(maxEntry.get().getKey()) : layouts.get(0));
+		AestheticMeasureUtil.measureAesthetics(root, true);
 		return maxEntry.isPresent() ? layouts.get(maxEntry.get().getKey()) : layouts.get(0);
 	}
 
 	/**
+	 * @deprecated
 	 * this method returns the minimum euclidean distance layout to our resolution
 	 */
+	@Deprecated
 	private WidthHeightRange getFeasibleLayout (Vector<WidthHeightRange> layouts) {
 		if (layouts.isEmpty()) {
 			return null;
