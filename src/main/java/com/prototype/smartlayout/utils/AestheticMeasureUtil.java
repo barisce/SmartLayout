@@ -1,5 +1,6 @@
 package com.prototype.smartlayout.utils;
 
+import com.prototype.smartlayout.model.AestheticData;
 import com.prototype.smartlayout.model.Coordinate;
 import com.prototype.smartlayout.model.LayoutComponent;
 import com.prototype.smartlayout.model.LayoutContainer;
@@ -25,7 +26,7 @@ public class AestheticMeasureUtil {
 	private static final double equilibriumFactor = 1;
 	private static final double symmetryFactor = 1;
 	private static final double sequenceFactor = 1;
-	private static final double cohesionFactor = 0.5;
+	private static final double cohesionFactor = 1;
 	private static final double unityFactor = 1;
 	private static final double proportionFactor = 1;
 	private static final double simplicityFactor = 1;
@@ -81,7 +82,7 @@ public class AestheticMeasureUtil {
 	private AestheticMeasureUtil () {
 	}
 
-	public static double measureAesthetics (Layoutable tree, boolean logEnabled) {
+	public static AestheticData measureAesthetics (Layoutable tree, boolean logEnabled) {
 		clearValues();
 		frameWidth = tree.getAssignedWidth();
 		frameHeight = tree.getAssignedHeight();
@@ -147,6 +148,8 @@ public class AestheticMeasureUtil {
 				unity + proportion + simplicity + density + regularity + economy + homogeneity + rhythm;
 		double orderAndComplexity = measureOrderAndComplexity(orderAndComplexityNumber) * orderAndComplexityFactor;
 
+		double total = orderAndComplexityNumber + orderAndComplexity;
+
 		if (logEnabled) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("\n\tbalance: ").append(balance).append("\n")
@@ -162,11 +165,12 @@ public class AestheticMeasureUtil {
 					.append("\teconomy: ").append(economy).append("\n")
 					.append("\thomogeneity: ").append(homogeneity).append("\n")
 					.append("\trhythm: ").append(rhythm).append("\n")
-					.append("\torderAndComplexity: ").append(orderAndComplexity);
+					.append("\torderAndComplexity: ").append(orderAndComplexity).append("\n")
+					.append("\ttotal: ").append(total);
 			log.info(sb.toString());
 		}
 
-		return orderAndComplexityNumber + orderAndComplexity;
+		return new AestheticData(balance, equilibrium, symmetry, sequence, cohesion, unity, proportion, simplicity, density, regularity, economy, homogeneity, rhythm, orderAndComplexity, total);
 	}
 
 	public static double measureBalance () {

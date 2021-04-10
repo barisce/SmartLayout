@@ -1,10 +1,12 @@
 package com.prototype.smartlayout;
 
 import com.prototype.smartlayout.listeners.ComponentResizeEndListener;
+import com.prototype.smartlayout.model.AestheticData;
 import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.Layoutable;
 import com.prototype.smartlayout.model.WidthHeightRange;
 import com.prototype.smartlayout.utils.AestheticMeasureUtil;
+import com.prototype.smartlayout.utils.HistogramUtils;
 import com.prototype.smartlayout.utils.TestCaseUtils;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -268,10 +270,13 @@ public class SmartLayout extends JFrame {
 		}
 		long startTime = System.nanoTime();
 		Map<Integer, Double> aestheticMeasurementMap = new HashMap<>();
+		HistogramUtils.clearLists();
 		for (int i = 0; i < layouts.size(); i++) {
 			WidthHeightRange layout = layouts.get(i);
 			root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), layout);
-			aestheticMeasurementMap.put(i, AestheticMeasureUtil.measureAesthetics(root, false));
+			AestheticData aestheticData = AestheticMeasureUtil.measureAesthetics(root, false);
+			HistogramUtils.addData(aestheticData);
+			aestheticMeasurementMap.put(i, aestheticData.getTotal());
 		}
 		Optional<Entry<Integer, Double>> maxEntry = aestheticMeasurementMap.entrySet().stream().max(Entry.comparingByValue());
 		long elapsedTime = System.nanoTime() - startTime;
@@ -285,8 +290,7 @@ public class SmartLayout extends JFrame {
 	}
 
 	/**
-	 * @deprecated
-	 * this method returns the minimum euclidean distance layout to our resolution
+	 * @deprecated this method returns the minimum euclidean distance layout to our resolution
 	 */
 	@Deprecated
 	private WidthHeightRange getFeasibleLayout (Vector<WidthHeightRange> layouts) {
