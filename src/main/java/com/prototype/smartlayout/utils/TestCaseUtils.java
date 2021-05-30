@@ -55,8 +55,14 @@ public class TestCaseUtils {
 			case 5:
 				return dictionaryTestCaseWithComponents2();
 			case 6:
+				return schengenVisa10CompApplicationForm();
+			case 7:
+				return schengenVisa31CompApplicationForm();
+			case 8:
+				return schengenVisa51CompApplicationForm();
+			case 9:
 			default:
-				return schengenVisaApplicationForm();
+			return schengenVisaApplicationForm();
 		}
 	}
 
@@ -88,7 +94,7 @@ public class TestCaseUtils {
 			LayoutContainer contY = new LayoutContainer("Y", compE, compF);
 			LayoutContainer contZ = new LayoutContainer("Z", contY, compG);
 			LayoutContainer contX = new LayoutContainer("X", compA, compB, compC);
-			return new LayoutContainer("M", contZ, contX, compD);
+			return new LayoutContainer("M", contZ, contX, compD); //11 all
 		}
 	}
 
@@ -112,7 +118,7 @@ public class TestCaseUtils {
 		LayoutContainer contN = new LayoutContainer("N", compG, compH, compI);
 		LayoutContainer contZ = new LayoutContainer("Z", contY, contR, contN);
 		LayoutContainer contX = new LayoutContainer("X", compA, compB, compC);
-		return new LayoutContainer("M", contZ, contX, compD);
+		return new LayoutContainer("M", contZ, contX, compD); //19 all
 	}
 
 	private static LayoutContainer dictionaryTestCase3 () {
@@ -135,7 +141,7 @@ public class TestCaseUtils {
 		LayoutContainer contN = new LayoutContainer("N", compG, compH, compI);
 		LayoutContainer contZ = new LayoutContainer("Z", contY, contR, contN);
 		LayoutContainer contX = new LayoutContainer("X", compA, compB, compC);
-		return new LayoutContainer("M", contZ, contX, compD);
+		return new LayoutContainer("M", contZ, contX, compD); //19 all
 	}
 
 	private static LayoutContainer dictionaryTestCaseWithComponents1 () {
@@ -173,7 +179,7 @@ public class TestCaseUtils {
 		LayoutContainer cont11 = new LayoutContainer("11", cont8, cont9, cont10);
 		LayoutContainer cont12 = new LayoutContainer("12", compQ, compR);
 		LayoutContainer cont13 = new LayoutContainer("13", cont12, compS, compT);
-		return new LayoutContainer("Root", cont7, cont11, cont13);
+		return new LayoutContainer("Root", cont7, cont11, cont13); //34 all
 	}
 
 	private static LayoutContainer dictionaryTestCaseWithComponents2 () {
@@ -205,22 +211,36 @@ public class TestCaseUtils {
 		// all lines
 		LayoutContainer contU = new LayoutContainer("U", contX, contQ);
 		// all lines and buttons
-		return new LayoutContainer("M", contU, contZ);
+		return new LayoutContainer("M", contU, contZ); //19 all
 	}
 
 	/**
-	 * This Schengen Visa Form part contains 84 components in the tree.
+	 * This Schengen Visa Form part contains 10 components in the tree.
 	 * It has unnecessary grouping and not used containers just to stress test the application
 	 *
 	 * @return the root of the Schengen Visa Application tree
 	 */
-	private static LayoutContainer schengenVisaApplicationForm () {
+	private static LayoutContainer schengenVisa10CompApplicationForm () {
 		LayoutContainer surnameField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname Field", "Surname", ComponentDimensionEnum.SMALL_SMALLER, "Enter Surname", ComponentDimensionEnum.SMALL_SMALLER);
-		LayoutContainer surnameAtBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname At Birth Field", "<html>Surname<br/>at<br/>Birth</html>", ComponentDimensionEnum.SMALL_SMALLER, "Enter Surname at Birth", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer surnameAtBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname At Birth Field", "<html>Surname<br/>at Birth</html>", ComponentDimensionEnum.SMALL_SMALLER, "Enter Surname at Birth", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer firstNameField = LayoutContainerTemplates.createLabelTextFieldContainer("First Name Field", "First Name", ComponentDimensionEnum.SMALL_SMALLER, "Enter First Name", ComponentDimensionEnum.SMALL_SMALLER);
+
+		return new LayoutContainer("M", surnameField, surnameAtBirthField, firstNameField);
+	}
+
+	/**
+	 * This Schengen Visa Form part contains 31 components in the tree.
+	 * It has unnecessary grouping and not used containers just to stress test the application
+	 *
+	 * @return the root of the Schengen Visa Application tree
+	 */
+	private static LayoutContainer schengenVisa31CompApplicationForm () {
+		LayoutContainer surnameField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname Field", "Surname", ComponentDimensionEnum.SMALL_SMALLER, "Enter Surname", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer surnameAtBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname At Birth Field", "<html>Surname<br/>at Birth</html>", ComponentDimensionEnum.SMALL_SMALLER, "Enter Surname at Birth", ComponentDimensionEnum.SMALL_SMALLER);
 		LayoutContainer firstNameField = LayoutContainerTemplates.createLabelTextFieldContainer("First Name Field", "First Name", ComponentDimensionEnum.SMALL_SMALLER, "Enter First Name", ComponentDimensionEnum.SMALL_SMALLER);
 
 		LayoutContainer leftUpperGroup = new LayoutContainer("Left Upper Group", surnameField, surnameAtBirthField, firstNameField);
-
+//10 up
 		LayoutComponent noticeLabel = createComponentFromDictionary("<html>FOR OFFICIAL<br/>USE ONLY</html>", new JLabel(), ComponentDimensionEnum.SMALL_SLACK_SMALLER);
 		LayoutContainer dateOfApplicationField = LayoutContainerTemplates.createLabelTextFieldContainer("Date of Application Field", "<html>Date of<br/>Application</html>", ComponentDimensionEnum.SMALLER_SMALLER, "Enter Date of Application", ComponentDimensionEnum.SMALL_SMALLER);
 		LayoutContainer applicationNumberField = LayoutContainerTemplates.createLabelTextFieldContainer("Application Number Field", "<html>Application<br/>Number</html>", ComponentDimensionEnum.SMALLER_SMALLER, "Enter Application Number", ComponentDimensionEnum.SMALL_SMALLER);
@@ -228,11 +248,42 @@ public class TestCaseUtils {
 		LayoutContainer rightUpperGroup = new LayoutContainer("Right Upper Group", noticeLabel, dateOfApplicationField, applicationNumberField);
 
 		LayoutContainer birthDateField = LayoutContainerTemplates.createLabelTextFieldContainer("Birth Date Field", "<html>Date of Birth<br/>(dd-mm-yyyy)</html>", ComponentDimensionEnum.SMALL_SMALLER, "Enter Birth Date", ComponentDimensionEnum.SMALL_SMALLER);
-
+//21 up
 		LayoutContainer placeOfBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Place of Birth Field", "Place of Birth", ComponentDimensionEnum.SMALL_SMALLER, "Enter Place of Birth", ComponentDimensionEnum.SMALL_SMALLER);
 		LayoutContainer countryOfBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Country of Birth Field", "Country of Birth", ComponentDimensionEnum.SMALL_SMALLER, "Enter Country of Birth", ComponentDimensionEnum.SMALL_SMALLER);
 		LayoutContainer birthPlaceGroup = new LayoutContainer("Birth Place Group", placeOfBirthField, countryOfBirthField);
+//28 up
+		LayoutContainer lowerGroup = new LayoutContainer("Lower Group", birthDateField, birthPlaceGroup);
+		LayoutContainer upperGroup = new LayoutContainer("Upper Group", leftUpperGroup, rightUpperGroup);
+		return new LayoutContainer("M", upperGroup, lowerGroup); //31 all
+	}
 
+
+	/**
+	 * This Schengen Visa Form part contains 51 components in the tree.
+	 * It has unnecessary grouping and not used containers just to stress test the application
+	 *
+	 * @return the root of the Schengen Visa Application tree
+	 */
+	private static LayoutContainer schengenVisa51CompApplicationForm () {
+		LayoutContainer surnameField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname Field", "Surname", ComponentDimensionEnum.SMALL_SMALLER, "Enter Surname", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer surnameAtBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname At Birth Field", "<html>Surname<br/>at Birth</html>", ComponentDimensionEnum.SMALL_SMALLER, "Enter Surname at Birth", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer firstNameField = LayoutContainerTemplates.createLabelTextFieldContainer("First Name Field", "First Name", ComponentDimensionEnum.SMALL_SMALLER, "Enter First Name", ComponentDimensionEnum.SMALL_SMALLER);
+
+		LayoutContainer leftUpperGroup = new LayoutContainer("Left Upper Group", surnameField, surnameAtBirthField, firstNameField);
+//10 up
+		LayoutComponent noticeLabel = createComponentFromDictionary("<html>FOR OFFICIAL<br/>USE ONLY</html>", new JLabel(), ComponentDimensionEnum.SMALL_SLACK_SMALLER);
+		LayoutContainer dateOfApplicationField = LayoutContainerTemplates.createLabelTextFieldContainer("Date of Application Field", "<html>Date of<br/>Application</html>", ComponentDimensionEnum.SMALLER_SMALLER, "Enter Date of Application", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer applicationNumberField = LayoutContainerTemplates.createLabelTextFieldContainer("Application Number Field", "<html>Application<br/>Number</html>", ComponentDimensionEnum.SMALLER_SMALLER, "Enter Application Number", ComponentDimensionEnum.SMALL_SMALLER);
+
+		LayoutContainer rightUpperGroup = new LayoutContainer("Right Upper Group", noticeLabel, dateOfApplicationField, applicationNumberField);
+
+		LayoutContainer birthDateField = LayoutContainerTemplates.createLabelTextFieldContainer("Birth Date Field", "<html>Date of Birth<br/>(dd-mm-yyyy)</html>", ComponentDimensionEnum.SMALL_SMALLER, "Enter Birth Date", ComponentDimensionEnum.SMALL_SMALLER);
+//21 up
+		LayoutContainer placeOfBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Place of Birth Field", "Place of Birth", ComponentDimensionEnum.SMALL_SMALLER, "Enter Place of Birth", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer countryOfBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Country of Birth Field", "Country of Birth", ComponentDimensionEnum.SMALL_SMALLER, "Enter Country of Birth", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer birthPlaceGroup = new LayoutContainer("Birth Place Group", placeOfBirthField, countryOfBirthField);
+//28 up
 		LayoutContainer nationalityField = LayoutContainerTemplates.createLabelTextFieldContainer("Current Nationality Field", "Current Nationality: ", ComponentDimensionEnum.MEDIUM_SMALLER, "Enter Current Nationality", ComponentDimensionEnum.MEDIUM_SMALLER);
 		LayoutContainer nationalityAtBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Nationality at birth, if different", "Nationality at Birth: ", ComponentDimensionEnum.MEDIUM_SMALLER, "Enter Nationality at Birth", ComponentDimensionEnum.MEDIUM_SMALLER);
 		LayoutContainer otherNationalitiesField = LayoutContainerTemplates.createLabelTextFieldContainer("Other Nationalities Field", "Other Nationalities: ", ComponentDimensionEnum.MEDIUM_SMALLER, "Enter Other nationalities", ComponentDimensionEnum.MEDIUM_SMALLER);
@@ -247,7 +298,52 @@ public class TestCaseUtils {
 		LayoutContainer genderChoicesGroup = new LayoutContainer("Gender Choices Group", genderMaleCheckbox, genderFemaleCheckbox);
 
 		LayoutContainer genderGroup = new LayoutContainer("Gender Group", genderLabel, genderChoicesGroup);
+//48 up
+		LayoutContainer upperGroup = new LayoutContainer("Upper Group", leftUpperGroup, rightUpperGroup);
+		LayoutContainer lowerGroup = new LayoutContainer("Lower Group", leftUpperMiddleGroup, genderGroup);
+		return new LayoutContainer("M", upperGroup, lowerGroup); //51 all
+	}
 
+	/**
+	 * This Schengen Visa Form part contains 84 components in the tree.
+	 * It has unnecessary grouping and not used containers just to stress test the application
+	 *
+	 * @return the root of the Schengen Visa Application tree
+	 */
+	private static LayoutContainer schengenVisaApplicationForm () {
+		LayoutContainer surnameField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname Field", "Surname", ComponentDimensionEnum.SMALL_SMALLER, "Enter Surname", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer surnameAtBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Surname At Birth Field", "<html>Surname<br/>at Birth</html>", ComponentDimensionEnum.SMALL_SMALLER, "Enter Surname at Birth", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer firstNameField = LayoutContainerTemplates.createLabelTextFieldContainer("First Name Field", "First Name", ComponentDimensionEnum.SMALL_SMALLER, "Enter First Name", ComponentDimensionEnum.SMALL_SMALLER);
+
+		LayoutContainer leftUpperGroup = new LayoutContainer("Left Upper Group", surnameField, surnameAtBirthField, firstNameField);
+//10 up
+		LayoutComponent noticeLabel = createComponentFromDictionary("<html>FOR OFFICIAL<br/>USE ONLY</html>", new JLabel(), ComponentDimensionEnum.SMALL_SLACK_SMALLER);
+		LayoutContainer dateOfApplicationField = LayoutContainerTemplates.createLabelTextFieldContainer("Date of Application Field", "<html>Date of<br/>Application</html>", ComponentDimensionEnum.SMALLER_SMALLER, "Enter Date of Application", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer applicationNumberField = LayoutContainerTemplates.createLabelTextFieldContainer("Application Number Field", "<html>Application<br/>Number</html>", ComponentDimensionEnum.SMALLER_SMALLER, "Enter Application Number", ComponentDimensionEnum.SMALL_SMALLER);
+
+		LayoutContainer rightUpperGroup = new LayoutContainer("Right Upper Group", noticeLabel, dateOfApplicationField, applicationNumberField);
+
+		LayoutContainer birthDateField = LayoutContainerTemplates.createLabelTextFieldContainer("Birth Date Field", "<html>Date of Birth<br/>(dd-mm-yyyy)</html>", ComponentDimensionEnum.SMALL_SMALLER, "Enter Birth Date", ComponentDimensionEnum.SMALL_SMALLER);
+//21 up
+		LayoutContainer placeOfBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Place of Birth Field", "Place of Birth", ComponentDimensionEnum.SMALL_SMALLER, "Enter Place of Birth", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer countryOfBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Country of Birth Field", "Country of Birth", ComponentDimensionEnum.SMALL_SMALLER, "Enter Country of Birth", ComponentDimensionEnum.SMALL_SMALLER);
+		LayoutContainer birthPlaceGroup = new LayoutContainer("Birth Place Group", placeOfBirthField, countryOfBirthField);
+//28 up
+		LayoutContainer nationalityField = LayoutContainerTemplates.createLabelTextFieldContainer("Current Nationality Field", "Current Nationality: ", ComponentDimensionEnum.MEDIUM_SMALLER, "Enter Current Nationality", ComponentDimensionEnum.MEDIUM_SMALLER);
+		LayoutContainer nationalityAtBirthField = LayoutContainerTemplates.createLabelTextFieldContainer("Nationality at birth, if different", "Nationality at Birth: ", ComponentDimensionEnum.MEDIUM_SMALLER, "Enter Nationality at Birth", ComponentDimensionEnum.MEDIUM_SMALLER);
+		LayoutContainer otherNationalitiesField = LayoutContainerTemplates.createLabelTextFieldContainer("Other Nationalities Field", "Other Nationalities: ", ComponentDimensionEnum.MEDIUM_SMALLER, "Enter Other nationalities", ComponentDimensionEnum.MEDIUM_SMALLER);
+		LayoutContainer nationalityGroup = new LayoutContainer("Nationality Group", nationalityField, nationalityAtBirthField, otherNationalitiesField);
+
+		LayoutContainer leftUpperMiddleGroup = new LayoutContainer("Left Upper Middle Group", birthDateField, birthPlaceGroup, nationalityGroup);
+
+		LayoutComponent genderLabel = createComponentFromDictionary("Sex: ", new JLabel(), ComponentDimensionEnum.SMALL_SMALLER);
+		ButtonGroup genderButtonGroup = new ButtonGroup();
+		LayoutContainer genderMaleCheckbox = LayoutContainerTemplates.createRadioButtonLabelContainer("Gender Male", genderButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Male", ComponentDimensionEnum.SMALLER_TINY);
+		LayoutContainer genderFemaleCheckbox = LayoutContainerTemplates.createRadioButtonLabelContainer("Gender Female", genderButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Female", ComponentDimensionEnum.SMALLER_TINY);
+		LayoutContainer genderChoicesGroup = new LayoutContainer("Gender Choices Group", genderMaleCheckbox, genderFemaleCheckbox);
+
+		LayoutContainer genderGroup = new LayoutContainer("Gender Group", genderLabel, genderChoicesGroup);
+//48 up
 		LayoutComponent civilStatusLabel = createComponentFromDictionary("Civil Status: ", new JLabel(), ComponentDimensionEnum.SMALL_SMALLER);
 		ButtonGroup civilStatusButtonGroup = new ButtonGroup();
 		LayoutContainer singleRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Single", civilStatusButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Single", ComponentDimensionEnum.SMALL_TINY);
@@ -255,7 +351,7 @@ public class TestCaseUtils {
 		LayoutContainer divorcedRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Divorced", civilStatusButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Divorced", ComponentDimensionEnum.SMALL_TINY);
 		LayoutContainer seperatedRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Seperated", civilStatusButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Seperated", ComponentDimensionEnum.SMALL_TINY);
 		LayoutContainer civilStatusChoicesGroup = new LayoutContainer("Civil Status Choices Group", singleRadioButton, marriedRadioButton, divorcedRadioButton, seperatedRadioButton);
-
+//62 up
 		LayoutContainer civilStatusGroup = new LayoutContainer("Civil Status Group", civilStatusLabel, civilStatusChoicesGroup);
 
 		LayoutComponent lodgedLabel = createComponentFromDictionary("Application lodged at: ", new JLabel(), ComponentDimensionEnum.MEDIUM_TINY);
@@ -266,13 +362,13 @@ public class TestCaseUtils {
 		LayoutContainer borderRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Border", lodgePlaceButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Border", ComponentDimensionEnum.MEDIUM_TINY);
 		LayoutContainer otherRadioButton = LayoutContainerTemplates.createRadioButtonLabelContainer("Other", lodgePlaceButtonGroup, "", ComponentDimensionEnum.TINY_TINY, "Other", ComponentDimensionEnum.MEDIUM_TINY);
 		LayoutContainer lodgePlaceChoicesGroup = new LayoutContainer("Lodge Place Choices Group", embassyRadioButton, serviceProviderRadioButton, commercialIntermediaryRadioButton, borderRadioButton, otherRadioButton);
-
+//80 up
 		LayoutContainer lodgedAtGroup = new LayoutContainer("Lodged At Group", lodgedLabel, lodgePlaceChoicesGroup);
 
 		LayoutContainer firstLine = new LayoutContainer("First Line", leftUpperGroup, leftUpperMiddleGroup, rightUpperGroup);
 		LayoutContainer secondLine = new LayoutContainer("Second Line", genderGroup, civilStatusGroup, lodgedAtGroup);
 
-		return new LayoutContainer("M", firstLine, secondLine);
+		return new LayoutContainer("M", firstLine, secondLine); //84 all
 	}
 
 	public static void createComponentsOfTree (JPanel panel) {

@@ -4,8 +4,10 @@ import com.prototype.smartlayout.model.Coordinate;
 import com.prototype.smartlayout.model.LayoutComponent;
 import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.Layoutable;
-import java.awt.GraphicsDevice;
+import java.awt.Dimension;
+import java.awt.DisplayMode;
 import java.awt.GraphicsEnvironment;
+import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,14 +24,14 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class AestheticMeasureUtil {
 	private static final double balanceFactor = 1;
-	private static final double equilibriumFactor = 1;
+	private static final double equilibriumFactor = 0;
 	private static final double symmetryFactor = 1;
-	private static final double sequenceFactor = 1;
-	private static final double cohesionFactor = 0.5;
+	private static final double sequenceFactor = 0.2;
+	private static final double cohesionFactor = 1;
 	private static final double unityFactor = 1;
 	private static final double proportionFactor = 1;
 	private static final double simplicityFactor = 1;
-	private static final double densityFactor = 1;
+	private static final double densityFactor = 0;
 	private static final double regularityFactor = 1;
 	private static final double economyFactor = 1;
 	private static final double homogeneityFactor = 1;
@@ -86,9 +88,16 @@ public class AestheticMeasureUtil {
 		frameWidth = tree.getAssignedWidth();
 		frameHeight = tree.getAssignedHeight();
 		// gets total screen size, supports multi-monitors as long as they all are the same resolution
-		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-		screenWidth = gd.getDisplayMode().getWidth();
-		screenHeight = gd.getDisplayMode().getHeight();
+		// Multi-screen support
+		// DisplayMode dm = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode();
+		// screenWidth = dm.getWidth();
+		// screenHeight = dm.getHeight();
+
+		// Single screen support
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		screenWidth = screenSize.getWidth();
+		screenHeight = screenSize.getHeight();
+
 		traverseToLeafNodes(tree);
 		getAlignmentPoints(unorganizedHAlignmentPoints, horizontalAlignmentPoints);
 		getAlignmentPoints(unorganizedVAlignmentPoints, verticalAlignmentPoints);
@@ -194,6 +203,7 @@ public class AestheticMeasureUtil {
 		return 1 - ((Math.abs(bmVertical) + Math.abs(bmHorizontal)) / 2);
 	}
 
+	// Center of mass * Area equals out so result is always 0.
 	public static double measureEquilibrium () {
 		double upperEmX = 0;
 		double emX = 0;
@@ -305,12 +315,12 @@ public class AestheticMeasureUtil {
 		double tFL = (frameHeight / frameWidth) / (screenHeight / screenWidth);
 		cmFL = tFL <= 1 ? tFL : 1 / tFL;
 		cmLO = fi / getSize();
-		return (Math.abs(cmFL) + Math.abs(cmLO)) / 2;
+		return (Math.abs(cmFL) + Math.abs(cmLO)) / 2d;
 	}
 
 	// UMSpace still not clear.
 	public static double measureUnity () {
-		double umForm = 1 - (distinctAreaCount - 1) / getSize();
+		double umForm = 1 - (distinctAreaCount - 1d) / getSize();
 		// UMSpace = 1 - (areaLayout - totalArea) / (areaFrame - totalArea) which is 0 in our case
 		// 1 - (numberOfSizes - 1) / getSize()
 		return umForm;
