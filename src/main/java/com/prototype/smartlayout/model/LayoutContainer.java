@@ -8,15 +8,15 @@ import java.util.IntSummaryStatistics;
 import java.util.Vector;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 
 @Getter
 @Setter
-@Log4j
+@Log4j2
 public class LayoutContainer implements Layoutable {
 
 	private final Vector<Layoutable> children;
-	private String id; // TODO: Remove after debugging
+	private String id;
 	private int assignedX;
 	private int assignedY;
 	private int assignedWidth;
@@ -24,8 +24,13 @@ public class LayoutContainer implements Layoutable {
 	private Vector<WidthHeightRange> memo = null;
 
 	public LayoutContainer (String id) {
-		this.id = id; // TODO: Remove after debugging
+		this.id = id;
 		children = new Vector<>();
+	}
+
+	public LayoutContainer (String id, Layoutable... layoutables) {
+		this(id);
+		children.addAll(Arrays.asList(layoutables));
 	}
 
 	/**
@@ -137,11 +142,16 @@ public class LayoutContainer implements Layoutable {
 					}
 				}
 
+				//==============
+				// Check if tempRAnges is empty
+				// If so, we cannot feasibly layout this container.
+				// We hould immediately stop the horizontal layout process. and also do not update vec below.
 				movingRanges.clear();
 				movingRanges.addAll(tempRanges);
 			}
 		}
 
+		// If the above check failed, do not update vec.
 		Vector<WidthHeightRange> vec = new Vector<>(movingRanges);
 
 		// Now, the VERTICAL orientation strategy
@@ -194,11 +204,14 @@ public class LayoutContainer implements Layoutable {
 					}
 				}
 
+				//==============
+				// Similaryl check feasibility and only update if feasible layouts exist
 				movingRanges.clear();
 				movingRanges.addAll(tempRanges);
 			}
 		}
 
+		// Update only if feasiblity checks returned true
 		vec.addAll(movingRanges);
 		memo = vec;
 
@@ -216,7 +229,7 @@ public class LayoutContainer implements Layoutable {
 
 	@Override
 	public boolean layout (int x, int y, int w, int h, WidthHeightRange whr) {
-		if (whr.getMinHeight() > h && whr.getMaxHeight() < h && whr.getMinWidth() > w && whr.getMaxWidth() < w) {
+		if (whr == null || (whr.getMinHeight() > h && whr.getMaxHeight() < h && whr.getMinWidth() > w && whr.getMaxWidth() < w)) {
 			return false;
 		}
 		// This is the main method that does the computation of layout
@@ -255,8 +268,8 @@ public class LayoutContainer implements Layoutable {
 //			feasible = strategyWeight(x, y, isHorizontal(whr) ? totalMinWidthOfChildren : totalMinHeightOfChildren, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues);
 
 //			// this stream gets the statistics of the int array so we can find minimum or maximum values of this array.
-			IntSummaryStatistics statWidth = Arrays.stream(maxWidthValues).summaryStatistics();
-			IntSummaryStatistics statHeight = Arrays.stream(maxHeightValues).summaryStatistics();
+//			IntSummaryStatistics statWidth = Arrays.stream(maxWidthValues).summaryStatistics();
+//			IntSummaryStatistics statHeight = Arrays.stream(maxHeightValues).summaryStatistics();
 //			// Max values strategy
 //			feasible = strategyValues(x, y, subRanges, whr.getOrientationStrategy(), (w > statWidth.getMin() ? statWidth.getMin() : w), (h > statHeight.getMin() ? statHeight.getMin() : h), isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 //			// Min values strategy
@@ -269,7 +282,7 @@ public class LayoutContainer implements Layoutable {
 
 			feasible = strategyBalance(x, y, subRanges, whr.getOrientationStrategy(), w, h, isHorizontal(whr) ? minWidthValues : minHeightValues, isHorizontal(whr) ? maxWidthValues : maxHeightValues);
 		} else {
-			log.debug("Shouldn't be here - Probably infeasible layout.");
+			log.debug("Shouldn't be here - Probably infeasible layout. ID: " + this.id);
 		}
 
 		// Just check if the given boundaries match with given width & height.
@@ -323,8 +336,6 @@ public class LayoutContainer implements Layoutable {
 				break;
 			}
 		}
-		// TODO new strategy not balanced but favor minimums.
-		//  100-200 150-200 200-600 -> 100,150,200 -> 150,150,200 -> 200,200,200 -> 200,200,400
 
 		//while it can still be distributed, distribute
 		while (remaining > 0) {
@@ -376,6 +387,21 @@ public class LayoutContainer implements Layoutable {
 		return layoutRecursively(x, y, subRanges, orientationStrategy, w, h, cum, distribution);
 	}
 
+	// TODO: private boolean strategyWeighted();
+
+	/**
+	 * This method acts like a water scale. adds minimum then adds only to least numbers
+	 *
+	 * @param x
+	 * @param y
+	 * @param subRanges
+	 * @param orientationStrategy
+	 * @param w
+	 * @param h
+	 * @param minValues
+	 * @param capacityValues
+	 * @return
+	 */
 	private boolean strategyBalance (int x, int y, Vector<WidthHeightRange> subRanges, WidthHeightRangeEnum orientationStrategy, int w, int h, int[] minValues, int[] capacityValues) {
 		int cum = 0;
 		int[] maxValues = new int[subRanges.size()];
@@ -421,7 +447,10 @@ public class LayoutContainer implements Layoutable {
 					q = p + 1;
 				}
 			}
-
+			if (indexOrder.length < 1) {
+				log.trace("Layout's constraints exceeds max values for components!");
+				break;
+			}
 			if (remaining < 0) {
 				log.error("Remaining can't be negative!");
 				break;
@@ -484,7 +513,21 @@ public class LayoutContainer implements Layoutable {
 		return true;
 	}
 
-	public void addComponent (Layoutable comp) {
-		children.add(comp);
+	public void addComponent (Layoutable... comp) {
+		children.addAll(Arrays.asList(comp));
+	}
+
+	public LayoutComponent findComponent (String label) {
+		for (Layoutable component : children) {
+			if (component instanceof LayoutComponent && label.equals(((LayoutComponent) component).getLabel())) {
+				return (LayoutComponent) component;
+			} else if (component instanceof LayoutContainer) {
+				LayoutComponent comp = ((LayoutContainer) component).findComponent(label);
+				if (comp != null) {
+					return comp;
+				}
+			}
+		}
+		return null;
 	}
 }

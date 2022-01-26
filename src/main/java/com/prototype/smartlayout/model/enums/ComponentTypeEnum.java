@@ -1,5 +1,6 @@
 package com.prototype.smartlayout.model.enums;
 
+@Deprecated
 public enum ComponentTypeEnum {
 
 	LABEL(0),

@@ -1,32 +1,27 @@
 package com.prototype.smartlayout;
 
-import com.prototype.smartlayout.listeners.KeyInputHandler;
-import com.prototype.smartlayout.model.LayoutComponent;
+import com.prototype.smartlayout.listeners.ComponentResizeEndListener;
 import com.prototype.smartlayout.model.LayoutContainer;
 import com.prototype.smartlayout.model.Layoutable;
 import com.prototype.smartlayout.model.WidthHeightRange;
+import com.prototype.smartlayout.utils.AestheticMeasureUtil;
 import com.prototype.smartlayout.utils.TestCaseUtils;
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Stroke;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Vector;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -35,43 +30,40 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
-import lombok.extern.log4j.Log4j;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import lombok.extern.log4j.Log4j2;
 
-@Log4j
-public class SmartLayout extends JFrame implements ComponentListener {
+@Log4j2
+public class SmartLayout extends JFrame {
 	private static final long serialVersionUID = 6944709955451188697L;
-	private static final Color TRANSPARENT_BLACK = new Color(0f, 0f, 0f, 0.4f);
-	private final JPanel panel;
+	private JPanel panel;
 	private JCheckBox showOnlyFeasibleLayouts = new JCheckBox("");
-	private Vector<WidthHeightRange> feasibleLayouts = new Vector<>();
 	private JTextField txtnum1;
 	private JTextField txtnum2;
 	private JComboBox comboBox;
 	private List<Color> colorList = new ArrayList<>();
+	private Vector<WidthHeightRange> feasibleLayouts = new Vector<>();
 	private Layoutable root;
-	private BasicStroke correctnessStroke = new BasicStroke(2);
-	private BufferedImage buffer;
-	private Graphics bufferGraphics;
 	private Vector<WidthHeightRange> finalLayoutCases;
 
 	private SmartLayout () {
 		super();
-		TestCaseUtils.components = new Vector<>();
+
+		TestCaseUtils.jComponentMap = new HashMap<>();
 		root = null;
 		finalLayoutCases = null;
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		addComponentListener(this);
+		addComponentListener(new ComponentResizeEndListener() {
+			@Override
+			public void resizeTimedOut () {
+				frameResized();
+			}
+		});
 
 		JPanel outerPanel = new JPanel(new BorderLayout());
 		JPanel topPanel = new JPanel(new FlowLayout());
-		panel = new JPanel(new FlowLayout());
+		panel = new JPanel(null);
+		panel.setLayout(null);
 		panel.setSize(800, 600);
-		panel.addMouseListener(new CanvasMouseListener());
-		panel.addMouseWheelListener(new CanvasMouseListener());
-		panel.addKeyListener(new KeyInputHandler());
 
 		showOnlyFeasibleLayouts.addItemListener(e -> getFinalLayoutCases());
 		topPanel.add(showOnlyFeasibleLayouts);
@@ -79,6 +71,9 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		JLabel lblCombo = new JLabel("Feasible Layouts: ");
 		topPanel.add(lblCombo);
 		comboBox = new JComboBox();
+		comboBox.setPreferredSize(new Dimension(120, 25));
+		comboBox.addItemListener(new ItemChangeListener());
+
 		comboBox.addKeyListener(new KeyListener() { // ActionListener did not work. So bound it to Enter Key
 			@Override
 			public void keyTyped (KeyEvent e) {
@@ -86,17 +81,47 @@ public class SmartLayout extends JFrame implements ComponentListener {
 
 			@Override
 			public void keyPressed (KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					// Draw the selected layout
-					for (WidthHeightRange finalLayoutCase : finalLayoutCases) {
-						if (finalLayoutCase.toString().equals(comboBox.getSelectedItem().toString())) {
-							root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCase);
-							log.debug(finalLayoutCase);
-							drawLayout();
+				int keyCode = e.getKeyCode();
+				switch (keyCode) {
+					case KeyEvent.VK_ENTER:
+						for (WidthHeightRange finalLayoutCase : finalLayoutCases) {
+							if (finalLayoutCase.toString().equals(comboBox.getSelectedItem().toString())) {
+								root.setAssignedWidth(root.getAssignedWidth() + 1);
+								root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), finalLayoutCase);
+								log.debug(finalLayoutCase);
+								log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
+								setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 75);
+								panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
+								resizeComponents();
+								break;
+							}
 						}
-					}
+						break;
+					case KeyEvent.VK_LEFT:
+						// handle left
+						getPrevious(comboBox.getSelectedIndex());
+						break;
+					case KeyEvent.VK_RIGHT:
+						// handle right
+						getNext(comboBox.getSelectedIndex());
+						break;
 				}
 			}
+
+			private void getNext (int selectedIndex) {
+				if (selectedIndex < 0 || selectedIndex + 1 == comboBox.getItemCount()) {
+					return;
+				}
+				comboBox.setSelectedIndex(selectedIndex + 1);
+			}
+
+			private void getPrevious (int selectedIndex) {
+				if (selectedIndex <= 0) {
+					return;
+				}
+				comboBox.setSelectedIndex(selectedIndex - 1);
+			}
+
 
 			@Override
 			public void keyReleased (KeyEvent e) {
@@ -120,34 +145,62 @@ public class SmartLayout extends JFrame implements ComponentListener {
 
 		JButton button = new JButton("Resize");
 		button.addActionListener(e -> {
-			root.setAssignedWidth(Integer.parseInt(txtnum1.getText()));
-			root.setAssignedHeight(Integer.parseInt(txtnum2.getText()));
-			getFinalLayoutCases();
-			root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getFeasibleLayout(finalLayoutCases));
-			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 75);
-			log.debug(getFeasibleLayout(finalLayoutCases));
-			drawLayout();
+			root.setAssignedWidth(Integer.parseInt(txtnum1.getText()) + 1);
+			root.setAssignedHeight(Integer.parseInt(txtnum2.getText()) - 1);
+//			getFinalLayoutCases();
+//			root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), getAestheticLayout(feasibleLayouts));
+			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 76);
+//			log.debug(getAestheticLayout(feasibleLayouts));
+//			resizeComponents();
 		});
 		topPanel.add(button);
 		outerPanel.add(panel, BorderLayout.CENTER);
+		// give the test number that you want to execute
+		root = TestCaseUtils.executeTest(6);
+		TestCaseUtils.createComponentsOfTree(panel);
 		outerPanel.add(topPanel, BorderLayout.PAGE_START);
-
-		buffer = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
-		bufferGraphics = buffer.createGraphics();
 
 		setContentPane(outerPanel);
 		setVisible(true);
 	}
 
 	public static void main (String[] args) {
-		PropertyConfigurator.configure(
-				SmartLayout.class.getProtectionDomain().getCodeSource().getLocation().getPath()
-						+ "log4j.properties");
 
 		SmartLayout app = new SmartLayout();
 		app.run();
-//		app.setSize(app.root.getAssignedWidth() + 50, app.root.getAssignedHeight() + 50);
-		app.setSize(1280, 720);
+		app.setSize(800, 400);
+	}
+
+	private static void resizeComponents () {
+		TestCaseUtils.jComponentMap.forEach((lComponent, jComponent) -> {
+			if (lComponent != null) {
+				jComponent.setBounds(lComponent.getAssignedX(), lComponent.getAssignedY(),
+						lComponent.getAssignedWidth(), lComponent.getAssignedHeight());
+				jComponent.setBorder(BorderFactory.createLineBorder(lComponent.isFeasible() ? Color.GREEN : Color.RED));
+				jComponent.setToolTipText(lComponent.getLabel());
+			}
+		});
+	}
+
+	/**
+	 * In this method we only need to check if the minimum values match because if the values exceed maximum we can still fit inside.
+	 */
+	private static boolean isLayoutFeasible (int w, int h, WidthHeightRange whr) {
+		return w >= whr.getMinWidth() && w <= whr.getMaxWidth() && h >= whr.getMinHeight() && h <= whr.getMaxHeight();
+	}
+
+	private void layoutAfterComboBoxChanged (int selectedIndex) {
+		for (WidthHeightRange finalLayoutCase : finalLayoutCases) {
+			if (finalLayoutCase.toString().equals(comboBox.getItemAt(selectedIndex).toString())) {
+				long startTime = System.nanoTime();
+				root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), finalLayoutCase);
+				long elapsedTime = System.nanoTime() - startTime;
+				log.debug("\nCombo changed layout Execution time in nanosecond: " + elapsedTime + "\nlayout Execution time in microsecond: " + (elapsedTime / 1000) + "\nTotal tree size : " + feasibleLayouts.size() +
+						"\nRoot Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
+				resizeComponents();
+				break;
+			}
+		}
 	}
 
 	/**
@@ -156,105 +209,39 @@ public class SmartLayout extends JFrame implements ComponentListener {
 	 */
 	private void run () {
 		log.debug("Starting test...");
-		// give the test number that you want to execute
-		root = TestCaseUtils.executeTest(6);
-
-		for (LayoutComponent ignored : TestCaseUtils.components) {
-			colorList.add(new Color(100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100)));
-		}
+		TestCaseUtils.jComponentMap.forEach((key, ignored) -> colorList.add(new Color(100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100), 100 + (int) (Math.random() * 100))));
 
 		((LayoutContainer) root).clearMemoization();
+		long startTime = System.nanoTime();
 		finalLayoutCases = root.getRanges();
-		log.debug(finalLayoutCases);
-		root.layout(0, 0, 800, 300, finalLayoutCases.get(0));
+		long elapsedTime = System.nanoTime() - startTime;
+		log.debug("getRanges Execution time in nanosecond: " + elapsedTime);
+		log.debug("getRanges Execution time in microsecond: " + elapsedTime / 1000);
+
+		startTime = System.nanoTime();
+		finalLayoutCases = root.getRanges();
+		elapsedTime = System.nanoTime() - startTime;
+		log.debug("getRanges memoization time in nanosecond: " + elapsedTime);
+		log.debug("getRanges memoization time in microsecond: " + elapsedTime / 1000);
+		//log.debug(finalLayoutCases);
+		root.layout(0, 0, 800, 400, finalLayoutCases.get(0));
 	}
 
-	@Override
-	public void componentResized (ComponentEvent componentEvent) {
+	public void frameResized () {
 		if (root == null) {
 			return;
 		}
 		setResizeOnRoot();
 		getFinalLayoutCases();
-		this.root.layout(0, 0, root.getAssignedWidth() > 0 ? root.getAssignedWidth() : 0, root.getAssignedHeight() > 0 ? root.getAssignedHeight() : 0, getFeasibleLayout(feasibleLayouts));
-		log.debug("Root Width: " + (root.getAssignedWidth()) + " Root Height: " + (root.getAssignedHeight()) + " Width: " + (panel.getWidth()) + " Height: " + (panel.getHeight()));
+		long startTime = System.nanoTime();
+		root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), getAestheticLayout(feasibleLayouts));
+		long elapsedTime = System.nanoTime() - startTime;
+		log.debug("\nFrame Resized Layout Execution time in nanosecond: " + elapsedTime + "\nLayout Execution time in microsecond: " + elapsedTime / 1000 + "\nTotal tree size : " + feasibleLayouts.size());
 
 		panel.setSize(root.getAssignedWidth(), root.getAssignedHeight());
 		txtnum1.setText(root.getAssignedWidth() + "");
 		txtnum2.setText(root.getAssignedHeight() + "");
-		drawLayout();
-	}
-
-	private void drawBlank () {
-		buffer = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
-		bufferGraphics = buffer.createGraphics();
-		bufferGraphics.setColor(Color.black);
-		bufferGraphics.fillRect(0, 0, panel.getWidth(), panel.getHeight());
-	}
-
-	/**
-	 * Draw the layout on the screen.
-	 */
-	private void drawLayout () {
-		if (root == null) {
-			return;
-		}
-
-		buffer = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
-		bufferGraphics = buffer.createGraphics();
-
-		Vector<LayoutComponent> components = TestCaseUtils.components;
-		for (int i = 0; i < components.size(); i++) {
-			LayoutComponent c = components.get(i);
-			int x = c.getAssignedX();
-			int y = c.getAssignedY();
-			int w = c.getAssignedWidth();
-			int h = c.getAssignedHeight();
-			int minWidth = c.getWidthHeightRange().getMinWidth();
-			int maxWidth = c.getWidthHeightRange().getMaxWidth();
-			int minHeight = c.getWidthHeightRange().getMinHeight();
-			int maxHeight = c.getWidthHeightRange().getMaxHeight();
-
-			// TODO instead of fillRect use images and print them to the UI
-			bufferGraphics.setColor(colorList.get(i));
-			bufferGraphics.fillRect(x, y, w, h);
-
-			if (c.isFeasible()) {
-				bufferGraphics.setColor(Color.GREEN);
-			} else {
-				bufferGraphics.setColor(Color.RED);
-			}
-			Graphics2D g2 = (Graphics2D) bufferGraphics;
-			Stroke oldStroke = g2.getStroke();
-			g2.setStroke(correctnessStroke);
-			//TODO : Draw infeasible lines not rectangle
-			g2.drawRect(x+1, y+1, w-2, h-2);
-			g2.setStroke(oldStroke);
-
-
-			bufferGraphics.setColor(Color.black);
-			bufferGraphics.setFont(new Font("Arial", Font.PLAIN, 14));
-			// Coords
-			bufferGraphics.drawString(x + " , " + y, x + 5, y + 15);
-			// Draw the min,actual,max values of width-height
-			// X values
-			bufferGraphics.drawString(minWidth + ", " + w + ", " + maxWidth, x + w / 2 - 40, y + h - 10);
-			// Y values
-			bufferGraphics.drawString("" + minHeight, x + w - 30, y + h / 2 - 25);
-			bufferGraphics.drawString("" + h, x + w - 30, y + h / 2);
-			bufferGraphics.drawString("" + maxHeight, x + w - 30, y + h / 2 + 25);
-			// Draw the leaf node name
-			bufferGraphics.setColor(TRANSPARENT_BLACK);
-//			bufferGraphics.setFont(new Font("Arial", Font.PLAIN, ((w / 2) + (h / 2)) / 3));
-			bufferGraphics.drawString(c.getLabel(), x + w / 2 - (h / 2) / 6, y + h / 2 + (w / 2) / 6);
-		}
-		repaint();
-	}
-
-	@Override
-	public void paint (Graphics g) {
-		super.paint(g);
-		panel.getGraphics().drawImage(buffer, 0, 0, null);
+		resizeComponents();
 	}
 
 	/**
@@ -275,13 +262,33 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		}
 	}
 
-	/**
-	 * In this method we only need to check if the minimum values match because if the values exceed maximum we can still fit inside.
-	 */
-	private boolean isLayoutFeasible (int w, int h, WidthHeightRange whr) {
-		return w >= whr.getMinWidth() && w <= whr.getMaxWidth() && h >= whr.getMinHeight() && h <= whr.getMaxHeight();
+	private WidthHeightRange getAestheticLayout (Vector<WidthHeightRange> layouts) {
+		if (layouts.isEmpty()) {
+			return null;
+		}
+		long startTime = System.nanoTime();
+		Map<Integer, Double> aestheticMeasurementMap = new HashMap<>();
+		for (int i = 0; i < layouts.size(); i++) {
+			WidthHeightRange layout = layouts.get(i);
+			root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), layout);
+			aestheticMeasurementMap.put(i, AestheticMeasureUtil.measureAesthetics(root, false));
+		}
+		Optional<Entry<Integer, Double>> maxEntry = aestheticMeasurementMap.entrySet().stream().max(Entry.comparingByValue());
+		long elapsedTime = System.nanoTime() - startTime;
+		// "\nAesthetic Layout Execution time in nanosecond: " + elapsedTime +
+		log.debug("\nAesthetic Execution time in millisecond: " + elapsedTime / 1000000d + "\nTotal tree size : " + feasibleLayouts.size());
+		log.info("Selected index : " + maxEntry.get().getKey() + " Selected aesthetic value : " + maxEntry.get().getValue());
+
+		root.layout(0, 0, Math.max(root.getAssignedWidth(), 0), Math.max(root.getAssignedHeight(), 0), maxEntry.isPresent() ? layouts.get(maxEntry.get().getKey()) : layouts.get(0));
+		AestheticMeasureUtil.measureAesthetics(root, true);
+		return maxEntry.isPresent() ? layouts.get(maxEntry.get().getKey()) : layouts.get(0);
 	}
 
+	/**
+	 * @deprecated
+	 * this method returns the minimum euclidean distance layout to our resolution
+	 */
+	@Deprecated
 	private WidthHeightRange getFeasibleLayout (Vector<WidthHeightRange> layouts) {
 		if (layouts.isEmpty()) {
 			return null;
@@ -292,8 +299,8 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		WidthHeightRange bestFit = null;
 		for (WidthHeightRange range : layouts) {
 			// Find closest pair of points according to root point.
-			double minsDist = Math.sqrt(Math.pow((double)root.getAssignedWidth() - range.getMinWidth(), 2) + Math.pow((double)root.getAssignedHeight() - range.getMinHeight(), 2));
-			double maxsDist = Math.sqrt(Math.pow((double)root.getAssignedWidth() - range.getMaxWidth(), 2) + Math.pow((double)root.getAssignedHeight() - range.getMaxHeight(), 2));
+			double minsDist = Math.sqrt(Math.pow((double) root.getAssignedWidth() - range.getMinWidth(), 2) + Math.pow((double) root.getAssignedHeight() - range.getMinHeight(), 2));
+			double maxsDist = Math.sqrt(Math.pow((double) root.getAssignedWidth() - range.getMaxWidth(), 2) + Math.pow((double) root.getAssignedHeight() - range.getMaxHeight(), 2));
 			// if both min and max values of possible layouts are less than our current distance set the new values
 			if (Math.max(minsDist, maxsDist) < minDiff) {
 				minDiff = Math.max(minsDist, maxsDist);
@@ -308,68 +315,12 @@ public class SmartLayout extends JFrame implements ComponentListener {
 		root.setAssignedHeight(panel.getHeight());
 	}
 
-	@Override
-	public void componentMoved (ComponentEvent componentEvent) {
-	}
-
-	@Override
-	public void componentShown (ComponentEvent componentEvent) {
-	}
-
-	@Override
-	public void componentHidden (ComponentEvent componentEvent) {
-	}
-
-	public class CanvasMouseListener implements MouseListener, MouseWheelListener {
-
-		private Logger logger = LogManager.getLogger(CanvasMouseListener.class);
-		private int counter = 0;
-
+	class ItemChangeListener implements ItemListener {
 		@Override
-		public void mouseClicked (MouseEvent e) {
-			logger.debug("X - " + e.getX() + " Y - " + e.getY());
-		}
-
-		@Override
-		public void mousePressed (MouseEvent e) {
-		}
-
-		@Override
-		public void mouseReleased (MouseEvent e) {
-		}
-
-		@Override
-		public void mouseEntered (MouseEvent e) {
-		}
-
-		@Override
-		public void mouseExited (MouseEvent e) {
-		}
-
-		@Override
-		public void mouseWheelMoved (MouseWheelEvent e) {
-			incrementCount();
-			if (e.getWheelRotation() > 0) {
-				// DOWN
-				root.setAssignedWidth(Math.max(0, root.getAssignedWidth() - 50));
-				root.setAssignedHeight(Math.max(0, root.getAssignedHeight() - 50));
-				getFinalLayoutCases();
-				root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCases.get(counter));
-			} else {
-				// UP
-				root.setAssignedWidth(root.getAssignedWidth() + 50);
-				root.setAssignedHeight(root.getAssignedHeight() + 50);
-				getFinalLayoutCases();
-				root.layout(0, 0, root.getAssignedWidth(), root.getAssignedHeight(), finalLayoutCases.get(counter));
+		public void itemStateChanged (ItemEvent event) {
+			if (event.getStateChange() == ItemEvent.SELECTED) {
+				layoutAfterComboBoxChanged(comboBox.getSelectedIndex());
 			}
-			setSize(root.getAssignedWidth() + 15, root.getAssignedHeight() + 75);
-			logger.debug("Width - " + root.getAssignedWidth() + " Y - " + root.getAssignedHeight());
-			log.debug(finalLayoutCases);
-			repaint();
-		}
-
-		private void incrementCount () {
-			counter = (counter + 1) % finalLayoutCases.size();
 		}
 	}
 }

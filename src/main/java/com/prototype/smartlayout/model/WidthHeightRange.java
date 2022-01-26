@@ -1,5 +1,6 @@
 package com.prototype.smartlayout.model;
 
+import com.prototype.smartlayout.model.enums.ComponentDimensionEnum;
 import com.prototype.smartlayout.model.enums.WidthHeightRangeEnum;
 import java.util.Vector;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class WidthHeightRange {
+	private ComponentDimensionEnum dict;
 	private int minWidth;
 	private int maxWidth;
 	private int minHeight;
@@ -30,6 +32,16 @@ public class WidthHeightRange {
 		this.maxWidth = maxWidth;
 		this.minHeight = minHeight;
 		this.maxHeight = maxHeight;
+		subRanges = new Vector<>();
+		this.orientationStrategy = orientationStrategy;
+	}
+
+	public WidthHeightRange (WidthHeightRangeEnum orientationStrategy, ComponentDimensionEnum item) {
+		this.dict = item;
+		this.minWidth = item.minWidth;
+		this.maxWidth = item.maxWidth;
+		this.minHeight = item.minHeight;
+		this.maxHeight = item.maxHeight;
 		subRanges = new Vector<>();
 		this.orientationStrategy = orientationStrategy;
 	}
